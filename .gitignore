@@ -1,6 +1,13 @@
 # Built application files
 *.apk
 *.ap_
+.idea
+*.iml
+*.so
+.gradle
+build/
+obj
+captures
 
 # Files for the ART/Dalvik VM
 *.dex

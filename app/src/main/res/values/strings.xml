@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">PR Paradise</string>
+    <string name="bitbucket_auth_header">Authenticate with Bitbucket</string>
+    <string name="hint_url">BitBucket URL</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="confirm">OK</string>
+
+    <string name="pull_requests_tab_title">Reviews</string>
+    <string name="reviewers_tab_title">Reviewers</string>
+    <string name="statistics_tab_title">Statistics</string>
+    <string name="who_to_choose">Who to choose?</string>
+
+    <string name="projects_choose_header">Select projects</string>
+    <string name="repositories_choose_header">Select repositories</string>
+    <string name="toast_no_network">Cannot connect to the server</string>
+    <string name="reviewing_count">Reviewing: %d</string>
+    <string name="reviewer_avatar_content_desc">Reviewer\'s avatar</string>
+    <string name="expand_reviewer_info_desc">Expand reviewer information</string>
+</resources>
