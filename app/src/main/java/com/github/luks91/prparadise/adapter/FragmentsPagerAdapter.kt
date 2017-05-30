@@ -26,18 +26,18 @@ class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Res
     : FragmentStatePagerAdapter(fragmentManager) {
 
     override fun getItem(position: Int): Fragment {
-        return PagerPager.values()[position].getItem()
+        return ViewPagerPage.values()[position].getItem()
     }
 
     override fun getCount(): Int {
-        return PagerPager.values().size
+        return ViewPagerPage.values().size
     }
 
     override fun getPageTitle(position: Int): CharSequence {
-        return PagerPager.values()[position].getTitle(resources)
+        return ViewPagerPage.values()[position].getTitle(resources)
     }
 
-    enum class PagerPager {
+    enum class ViewPagerPage {
         REVIEWERS {
             override fun getItem(): Fragment {
                 return ReviewersFragment.newInstance()

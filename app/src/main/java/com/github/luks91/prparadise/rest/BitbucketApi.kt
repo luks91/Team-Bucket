@@ -24,7 +24,9 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.io.InterruptedIOException
 import java.net.HttpURLConnection
+import java.net.SocketException
 import java.net.UnknownHostException
 import java.util.concurrent.Callable
 
@@ -65,7 +67,7 @@ interface BitbucketApi {
     ): Observable<PagedResponse<Project>>
 
     companion object Utility {
-        val PAGE_SIZE = 5
+        val PAGE_SIZE = 50
 
         fun <TData> queryPaged(generator: (start: Int) -> Observable<PagedResponse<TData>>): Observable<List<TData>> {
             return Observable.generate<List<TData>, BehaviorSubject<Int>>(
@@ -87,25 +89,29 @@ interface BitbucketApi {
                     })
         }
 
-        //TODO: Following errors still should be handled:
-        //      java.net.SocketException: Software caused connection abort
-        //          (when network was switching from airplane to wifi or when screen rotates)
-        //      java.io.InterruptedIOException: thread interrupted
-        //          (when sync is interrupted and another one is created)
         fun <TData> handleNetworkError(sender: String): ((t: Throwable) -> Observable<TData>) {
             return { t: Throwable ->
-                if (t is HttpException) {
-                    if (t.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(sender))
-                        Observable.empty<TData>()
-                    } else {
-                        Observable.error(t)
+                when (t) {
+                    is HttpException -> {
+                        if (t.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                            ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(sender))
+                            Observable.empty<TData>()
+                        } else {
+                            Observable.error(t)
+                        }
                     }
-                } else if (t is UnknownHostException) {
-                    ReactiveBus.INSTANCE.post(ReactiveBus.EventNoNetworkConnection(sender))
-                    Observable.empty<TData>()
-                } else {
-                    Observable.error(t)
+                    is SocketException -> {
+                        ReactiveBus.INSTANCE.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        Observable.empty<TData>()
+                    }
+                    is UnknownHostException -> {
+                        ReactiveBus.INSTANCE.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        Observable.empty<TData>()
+                    }
+                    is InterruptedIOException -> {
+                        Observable.empty<TData>()
+                    }
+                    else -> Observable.error(t)
                 }
             }
         }

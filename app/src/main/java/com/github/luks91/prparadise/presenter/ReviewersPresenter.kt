@@ -16,6 +16,7 @@ package com.github.luks91.prparadise.presenter
 import android.content.Context
 import com.github.luks91.prparadise.ReviewersView
 import com.github.luks91.prparadise.model.*
+import com.github.luks91.prparadise.persistence.PersistenceProvider
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import io.reactivex.Observable
@@ -29,7 +30,7 @@ class ReviewersPresenter(context: Context) : MvpPresenter<ReviewersView> {
 
     private val connectionProvider: ConnectionProvider =
             ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
-    private val repositoriesProvider: RepositoriesProvider = RepositoriesProvider()
+    private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
     private var subscription = Disposables.empty()
 
     override fun attachView(view: ReviewersView) {
@@ -38,8 +39,8 @@ class ReviewersPresenter(context: Context) : MvpPresenter<ReviewersView> {
                 BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn })
                 .observeOn(Schedulers.io())
                 .switchMap { (serverUrl, api, token) ->
-                    repositoriesProvider.obtainSelectedRepositories()
-                            .flatMap { repositories ->
+                    persistenceProvider.obtainSelectedRepositories()
+                            .switchMap { repositories ->
                                 Observable.fromIterable(repositories).flatMap { (slug, _, project) ->
                                     BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start)
                                                 .subscribeOn(Schedulers.io())

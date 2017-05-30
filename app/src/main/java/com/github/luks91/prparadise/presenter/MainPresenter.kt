@@ -17,6 +17,7 @@ import android.content.Context
 import com.github.luks91.prparadise.MainView
 import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.model.*
+import com.github.luks91.prparadise.persistence.PersistenceProvider
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.github.luks91.prparadise.util.ReactiveBus
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
@@ -31,10 +32,12 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
 
     private val connectionProvider: ConnectionProvider =
             ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
+    private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
 
     private var credentialsProvidingSubscription: Disposable = Disposables.empty()
     private var repositoriesProvidingSubscription: Disposable = Disposables.empty()
     private var noNetworkSubscription: Disposable = Disposables.empty()
+    private var dataPersistenceSubscription: Disposable = Disposables.empty()
 
     override fun attachView(view: MainView) {
         val requestUserCredentialsObservable = view.requestUserCredentials().publish().refCount()
@@ -42,6 +45,8 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                 .observeOn(AndroidSchedulers.mainThread())
                 .concatMap { requestUserCredentialsObservable }
                 .subscribe { credentials -> ReactiveBus.INSTANCE.post(credentials) }
+
+        dataPersistenceSubscription = persistenceProvider.subscribeRepositoriesPersisting()
 
         val requestRepositoriesSelection = connectionProvider.obtainConnection().flatMap { connection ->
                     repositoriesSelection(connection, view, projectSelection(connection, view))
@@ -100,6 +105,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
 
     override fun detachView(retainInstance: Boolean) {
         credentialsProvidingSubscription.dispose()
+        dataPersistenceSubscription.dispose()
         repositoriesProvidingSubscription.dispose()
         noNetworkSubscription.dispose()
     }

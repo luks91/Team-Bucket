@@ -21,6 +21,8 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.nio.charset.Charset
 
+val EMPTY_STRING = ""
+
 data class BitbucketCredentials(val bitBucketUrl: String, val username: String, val password: String)
 
 data class BitbucketConnection(val serverUrl: String, val api: BitbucketApi, val token: String) {
@@ -47,31 +49,31 @@ data class BitbucketConnection(val serverUrl: String, val api: BitbucketApi, val
 }
 
 data class Project(@Json(name = "key") val key: String,
-                   @Json(name = "name") val name: String,
-                   @Json(name = "description") val description: String)
+              @Json(name = "name") val name: String,
+              @Json(name = "description") val description: String)
 
 data class Repository(@Json(name = "slug") val slug: String,
-                      @Json(name = "name") val name: String,
-                      @Json(name = "project") val project: Project)
+                 @Json(name = "name") val name: String,
+                 @Json(name = "project") val project: Project)
 
 data class User(@Json(name = "id") val id: Int,
-                @Json(name = "name") val name: String,
-                @Json(name = "displayName") val displayName: String,
-                @Json(name = "slug") val slug: String,
-                @Json(name = "avatarUrl") val avatarUrlSuffix: String)
+           @Json(name = "name") val name: String,
+           @Json(name = "displayName") val displayName: String,
+           @Json(name = "slug") val slug: String,
+           @Json(name = "avatarUrl") val avatarUrlSuffix: String)
 
 data class PullRequestMember(@Json(name = "user") val user: User,
-                             @Json(name = "role") val role: String,
-                             @Json(name = "approved") val approved: Boolean,
-                             @Json(name = "status") val status: String)
+                        @Json(name = "role") val role: String,
+                        @Json(name = "approved") val approved: Boolean,
+                        @Json(name = "status") val status: String)
 
 data class PullRequest(@Json(name = "id") val id: Long,
-                       @Json(name = "title") val title: String,
-                       @Json(name = "createdDate") val createdDate: Long,
-                       @Json(name = "updatedDate") val updatedDate: Long,
-                       @Json(name = "author") val author: PullRequestMember,
-                       @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
-                       @Json(name = "state") val state: String)
+                  @Json(name = "title") val title: String,
+                  @Json(name = "createdDate") val createdDate: Long,
+                  @Json(name = "updatedDate") val updatedDate: Long,
+                  @Json(name = "author") val author: PullRequestMember,
+                  @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
+                  @Json(name = "state") val state: String)
 
 data class Reviewer(val user: User, val reviewsCount: Int)
 data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String)
