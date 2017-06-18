@@ -14,7 +14,6 @@
 package com.github.luks91.prparadise.fragment
 
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
@@ -22,23 +21,26 @@ import android.view.View
 import android.view.ViewGroup
 import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.ReviewersView
-import com.github.luks91.prparadise.model.Reviewer
 import com.github.luks91.prparadise.presenter.ReviewersPresenter
 import com.hannesdorfmann.mosby3.mvp.MvpFragment
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.widget.ImageView
-import android.widget.TextView
+import com.github.luks91.prparadise.adapter.ReviewersAdapter
+import com.github.luks91.prparadise.model.ImageLoadRequest
+import com.github.luks91.prparadise.model.PullRequest
 import com.github.luks91.prparadise.model.ReviewersInformation
-import com.squareup.picasso.Picasso
-import org.apache.commons.lang3.StringUtils
+import com.github.luks91.prparadise.model.User
+import com.squareup.picasso.Target
 
-class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), ReviewersView {
+class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), ReviewersView, ReviewersAdapter.Callback {
 
-    val pullToRefreshSubject: PublishSubject<Any> = PublishSubject.create()
-    val dataAdapter = ReviewersAdapter()
+    private val pullToRefreshSubject: PublishSubject<Any> = PublishSubject.create()
+    private val reviewsForUserSubject: PublishSubject<IndexedValue<User>> = PublishSubject.create()
+    private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
+    private val layoutManager: LinearLayoutManager by lazy { LinearLayoutManager(context) }
+    private val dataAdapter: ReviewersAdapter by lazy { ReviewersAdapter(context, this, layoutManager) }
 
     companion object Factory {
         fun newInstance() : ReviewersFragment = ReviewersFragment()
@@ -69,16 +71,8 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
 
     fun setupRecyclerView() {
         val recyclerView = view!!.findViewById(R.id.reviewersRecyclerView) as RecyclerView
-        val llm = LinearLayoutManager(context)
-        recyclerView.layoutManager = llm
+        recyclerView.layoutManager = layoutManager
         recyclerView.adapter = dataAdapter
-    }
-
-    override fun onReviewersReceived(reviewers: ReviewersInformation) {
-        dataAdapter.dataList.clear()
-        dataAdapter.serverUrl = reviewers.serverUrl
-        dataAdapter.dataList.addAll(reviewers.reviewers)
-        dataAdapter.notifyDataSetChanged()
     }
 
     override fun intentPullToRefresh(): Observable<Any> {
@@ -90,37 +84,27 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
         swipeContainer.isRefreshing = false
     }
 
-    inner class ReviewersAdapter : RecyclerView.Adapter<ReviewersAdapter.DataViewHolder>() {
+    override fun onReviewersReceived(reviewers: ReviewersInformation) {
+        dataAdapter.onReviewersReceived(reviewers)
+    }
 
-        val dataList = mutableListOf<Reviewer>()
-        var serverUrl: String = StringUtils.EMPTY
+    override fun retrieveReviewsFor(user: User, index: Int) {
+        reviewsForUserSubject.onNext(IndexedValue(index, user))
+    }
 
-        inner class DataViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            internal var reviewerName: TextView = itemView.findViewById(R.id.reviewerName) as TextView
-            internal var pullRequestsCount: TextView = itemView.findViewById(R.id.pullRequestsCount) as TextView
-            internal var reviewerAvatar: ImageView = itemView.findViewById(R.id.reviewerAvatar) as ImageView
-        }
+    override fun intentRetrieveReviews(): Observable<IndexedValue<User>> {
+        return reviewsForUserSubject
+    }
 
-        override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): DataViewHolder {
-            val v = LayoutInflater.from(parent!!.context).inflate(R.layout.reviewer_card, parent, false)
-            return DataViewHolder(v)
-        }
+    override fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>) {
+        dataAdapter.onPullRequestsProvided(reviews)
+    }
 
-        override fun onBindViewHolder(holder: DataViewHolder?, position: Int) {
-            val dataObject = dataList[position]
-            holder!!.reviewerName.text = dataObject.user.displayName
-            holder.pullRequestsCount.text = context.getString(R.string.reviewing_count, dataObject.reviewsCount)
+    override fun intentLoadAvatarImage(): Observable<ImageLoadRequest> {
+        return imageLoadRequests
+    }
 
-            //TODO: Picasso interaction to be moved to the presenter
-            Picasso.with(context)
-                    .load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(dataObject.user.avatarUrlSuffix).build())
-                    .placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
-                    .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
-                    .into(holder.reviewerAvatar)
-        }
-
-        override fun getItemCount(): Int {
-            return dataList.size
-        }
+    override fun loadImageFor(serverUrl: String, urlPath: String, target: Target) {
+        imageLoadRequests.onNext(ImageLoadRequest(serverUrl, urlPath, target))
     }
 }

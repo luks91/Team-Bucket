@@ -16,6 +16,7 @@ package com.github.luks91.prparadise.model
 import android.util.Base64
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.squareup.moshi.Json
+import com.squareup.picasso.Target
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -49,31 +50,36 @@ data class BitbucketConnection(val serverUrl: String, val api: BitbucketApi, val
 }
 
 data class Project(@Json(name = "key") val key: String,
-              @Json(name = "name") val name: String,
-              @Json(name = "description") val description: String)
+                   @Json(name = "name") val name: String,
+                   @Json(name = "description") val description: String)
 
 data class Repository(@Json(name = "slug") val slug: String,
-                 @Json(name = "name") val name: String,
-                 @Json(name = "project") val project: Project)
+                      @Json(name = "name") val name: String,
+                      @Json(name = "project") val project: Project)
 
 data class User(@Json(name = "id") val id: Int,
-           @Json(name = "name") val name: String,
-           @Json(name = "displayName") val displayName: String,
-           @Json(name = "slug") val slug: String,
-           @Json(name = "avatarUrl") val avatarUrlSuffix: String)
+                @Json(name = "name") val name: String,
+                @Json(name = "displayName") val displayName: String,
+                @Json(name = "slug") val slug: String,
+                @Json(name = "avatarUrl") val avatarUrlSuffix: String)
 
 data class PullRequestMember(@Json(name = "user") val user: User,
-                        @Json(name = "role") val role: String,
-                        @Json(name = "approved") val approved: Boolean,
-                        @Json(name = "status") val status: String)
+                             @Json(name = "role") val role: String,
+                             @Json(name = "approved") val approved: Boolean,
+                             @Json(name = "status") val status: String)
 
 data class PullRequest(@Json(name = "id") val id: Long,
-                  @Json(name = "title") val title: String,
-                  @Json(name = "createdDate") val createdDate: Long,
-                  @Json(name = "updatedDate") val updatedDate: Long,
-                  @Json(name = "author") val author: PullRequestMember,
-                  @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
-                  @Json(name = "state") val state: String)
+                       @Json(name = "title") val title: String,
+                       @Json(name = "createdDate") val createdDate: Long,
+                       @Json(name = "updatedDate") val updatedDate: Long,
+                       @Json(name = "author") val author: PullRequestMember,
+                       @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
+                       @Json(name = "state") val state: String,
+                       @Json(name = "fromRef") val sourceBranch: GitReference,
+                       @Json(name = "toRef") val targetBranch: GitReference)
+
+data class GitReference(@Json(name = "displayId") val displayId: String,
+                        @Json(name = "latestCommit") val latestCommit: String)
 
 data class Reviewer(val user: User, val reviewsCount: Int)
 data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String)
@@ -84,3 +90,5 @@ data class PagedResponse<out T>(@Json(name = "size") val size: Int,
                                 @Json(name = "values") val values: List<T>,
                                 @Json(name = "start") val start: Int,
                                 @Json(name = "nextPageStart") val nextPageStart: Int = Int.MAX_VALUE)
+
+data class ImageLoadRequest(val serverUrl: String, val urlPath: String, val target: Target)

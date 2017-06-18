@@ -14,51 +14,69 @@
 package com.github.luks91.prparadise.presenter
 
 import android.content.Context
+import android.net.Uri
+import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.ReviewersView
 import com.github.luks91.prparadise.model.*
 import com.github.luks91.prparadise.persistence.PersistenceProvider
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
+import com.squareup.picasso.Picasso
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
-import io.reactivex.functions.BiFunction
+import io.reactivex.functions.Function3
+import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
-import org.apache.commons.lang3.StringUtils
 
-class ReviewersPresenter(context: Context) : MvpPresenter<ReviewersView> {
+class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersView> {
 
     private val connectionProvider: ConnectionProvider =
             ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
     private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
-    private var subscription = Disposables.empty()
+    private var disposable = Disposables.empty()
 
     override fun attachView(view: ReviewersView) {
-        subscription = Observable.combineLatest(view.intentPullToRefresh().startWith { Object() },
+        val pullRequests = pullRequests(view)
+        disposable = CompositeDisposable(
+                subscribeProvidingReviewers(pullRequests, view),
+                persistenceProvider.pullRequestsPersisting(pullRequests.map { (pullRequests) -> pullRequests }),
+                pullRequests.connect(),
+                subscribeProvidingPullRequests(view),
+                subscribeImageLoading(view)
+        )
+    }
+
+    private fun pullRequests(view: ReviewersView): ConnectableObservable<Pair<List<PullRequest>, String>> {
+        return Observable.combineLatest(
+                view.intentPullToRefresh().startWith { Object() },
                 connectionProvider.obtainConnection(),
-                BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn })
-                .observeOn(Schedulers.io())
-                .switchMap { (serverUrl, api, token) ->
-                    persistenceProvider.obtainSelectedRepositories()
-                            .switchMap { repositories ->
-                                Observable.fromIterable(repositories).flatMap { (slug, _, project) ->
-                                    BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start)
-                                                .subscribeOn(Schedulers.io())
-                                    }
-                                    .subscribeOn(Schedulers.io())
-                                    .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
-                                }
-                                .reduce { t1, t2 -> t1 + t2 }
-                                .map { values -> reviewersInformationFrom(values, serverUrl) }.toObservable()
-                                .first(ReviewersInformation(listOf<Reviewer>(), StringUtils.EMPTY)).toObservable()
-                            }
+                persistenceProvider.selectedRepositories(),
+                Function3<Any, BitbucketConnection, List<Repository>, Observable<Pair<List<PullRequest>, String>>> {
+                    _, (serverUrl, api, token), repositories ->
+                    Observable.fromIterable(repositories).flatMap { (slug, _, project) ->
+                        BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start) }
+                                .subscribeOn(Schedulers.io())
+                                .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
+                                .switchIfEmpty(Observable.just(listOf()))
+                                .reduce { t1, t2 -> t1 + t2 }.toObservable()
+                    }.reduce { t1, t2 -> t1 + t2 }.map { list -> Pair(list, serverUrl) }.toObservable()
                 }
+        ).switchMap { pullRequestsObservable -> pullRequestsObservable }.publish()
+    }
+
+    private fun subscribeProvidingReviewers(pullRequests: ConnectableObservable<Pair<List<PullRequest>, String>>,
+                                            view: ReviewersView): Disposable {
+        return pullRequests
+                .map { (pullRequests, serverUrl) -> reviewersInformationFrom(pullRequests, serverUrl) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext { view.onLoadingCompleted() }
                 .subscribe { prCount -> view.onReviewersReceived(prCount) }
     }
 
-    fun reviewersInformationFrom(pullRequests: List<PullRequest>, serverUrl: String): ReviewersInformation {
+    private fun reviewersInformationFrom(pullRequests: List<PullRequest>, serverUrl: String): ReviewersInformation {
         val usersToPullRequests = mutableMapOf<User, Int>()
         pullRequests.forEach {
             it.reviewers
@@ -80,7 +98,28 @@ class ReviewersPresenter(context: Context) : MvpPresenter<ReviewersView> {
         return ReviewersInformation(returnList.sortedWith(compareBy({ it.reviewsCount }, { it.user.displayName })), serverUrl)
     }
 
+    private fun subscribeProvidingPullRequests(view: ReviewersView): Disposable {
+        return view.intentRetrieveReviews()
+                .switchMap { (userIndex, user) -> persistenceProvider.pullRequestsUnderReviewBy(user)
+                        .map { pullRequests -> pullRequests.mapIndexed { i, pr -> IndexedValue(userIndex + 1 + i, pr) } }
+                        .first(listOf()).toObservable() //FIXME: Adapter cannot handle live updates ATM.. we need to change that
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { list -> view.onPullRequestsProvided(list) }
+    }
+
+    private fun subscribeImageLoading(view: ReviewersView): Disposable {
+        return view.intentLoadAvatarImage()
+                .subscribe { (serverUrl, urlPath, target) ->
+                    Picasso.with(this@ReviewersPresenter.context)
+                            .load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
+                            .placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
+                            .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
+                            .into(target)
+                }
+    }
+
     override fun detachView(retainInstance: Boolean) {
-        subscription.dispose()
+        disposable.dispose()
     }
 }

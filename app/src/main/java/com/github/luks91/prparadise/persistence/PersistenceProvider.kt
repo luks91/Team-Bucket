@@ -14,9 +14,12 @@
 package com.github.luks91.prparadise.persistence
 
 import android.os.HandlerThread
+import com.github.luks91.prparadise.model.PullRequest
 import com.github.luks91.prparadise.model.Repository
+import com.github.luks91.prparadise.model.User
 import com.github.luks91.prparadise.util.ReactiveBus
 import com.github.luks91.prparadise.util.asFlowable
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -27,7 +30,7 @@ import io.realm.RealmConfiguration
 class PersistenceProvider(context: android.content.Context) {
 
     init {
-        io.realm.Realm.init(context)
+        Realm.init(context)
     }
 
     companion object Holder {
@@ -39,7 +42,7 @@ class PersistenceProvider(context: android.content.Context) {
         }
     }
 
-    fun obtainSelectedRepositories(): Observable<List<Repository>> {
+    fun selectedRepositories(): Observable<List<Repository>> {
         return usingRealm { realm ->
             realm.where(RealmRepository::class.java).findAll().asFlowable()
                     .map { results -> results.toList() }
@@ -75,5 +78,39 @@ class PersistenceProvider(context: android.content.Context) {
                         realm.copyToRealmOrUpdate(repositories)
                     } }
         }.subscribe()
+    }
+
+    fun pullRequestsPersisting(pullRequests: Observable<List<PullRequest>>): Disposable {
+        return usingRealm { realm ->
+            pullRequests
+                    .observeOn(looperScheduler)
+                    .map { pullRequest -> pullRequest.map(RealmPullRequest.Factory::from) }
+                    .map { pullRequests ->
+                        realm.executeTransaction {
+                            //TODO: removing all the rows and writing them again is not very efficient (though we're not dealing
+                            //TODO: with much data as of right now). Consider improving performance in this area.
+                            realm.delete(RealmPullRequest::class.java)
+                            realm.delete(RealmPullRequestMember::class.java)
+                            realm.delete(RealmUser::class.java)
+                            realm.delete(RealmGitReference::class.java)
+                            realm.copyToRealmOrUpdate(pullRequests)
+                        }
+                    }
+        }.subscribe()
+    }
+
+    fun pullRequestsUnderReviewBy(user: User): Observable<List<PullRequest>> {
+        return usingRealm { realm ->
+            realm.where(RealmPullRequestMember::class.java)
+                    .equalTo("user.slug", user.slug)
+                    .equalTo("approved", false)
+                    .equalTo("role", "REVIEWER")
+                    .findAll().asFlowable()
+                    .concatMap { reviewers -> Flowable.fromIterable(reviewers)
+                            .concatMapIterable{ member -> member.reviewingPullRequests }
+                            .map { realmPullRequest -> realmPullRequest.toPullRequest() }
+                            .toList().toFlowable()
+                    }.toObservable()
+        }.subscribeOn(looperScheduler)
     }
 }

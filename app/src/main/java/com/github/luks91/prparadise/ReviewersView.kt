@@ -13,8 +13,10 @@
 
 package com.github.luks91.prparadise
 
-import com.github.luks91.prparadise.model.Reviewer
+import com.github.luks91.prparadise.model.ImageLoadRequest
+import com.github.luks91.prparadise.model.PullRequest
 import com.github.luks91.prparadise.model.ReviewersInformation
+import com.github.luks91.prparadise.model.User
 import com.hannesdorfmann.mosby3.mvp.MvpView
 import io.reactivex.Observable
 
@@ -22,6 +24,8 @@ interface ReviewersView : MvpView {
 
     fun onReviewersReceived(reviewers: ReviewersInformation)
     fun onLoadingCompleted()
+    fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>)
     fun intentPullToRefresh(): Observable<Any>
-
+    fun intentRetrieveReviews(): Observable<IndexedValue<User>>
+    fun intentLoadAvatarImage(): Observable<ImageLoadRequest>
 }

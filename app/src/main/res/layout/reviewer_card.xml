@@ -11,7 +11,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="60dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -35,6 +35,7 @@
                 android:id="@+id/reviewerName"
                 android:layout_width="match_parent"
                 tools:text="Szczyglowski Lukasz-KXCQ63"
+                android:textColor="@color/primary_text"
                 android:textSize="20sp"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
@@ -46,6 +47,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="start"
+                android:textColor="@color/secondary_text"
                 tools:text="Reviewing: 2"
                 android:textSize="16sp"/>
         </LinearLayout>
