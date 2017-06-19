@@ -18,7 +18,6 @@ import com.github.luks91.prparadise.model.PullRequest
 import com.github.luks91.prparadise.model.Repository
 import com.github.luks91.prparadise.model.User
 import com.github.luks91.prparadise.util.ReactiveBus
-import com.github.luks91.prparadise.util.asFlowable
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Scheduler

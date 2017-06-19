@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.prparadise.util
+package com.github.luks91.prparadise.persistence
 
 import io.reactivex.*
 import io.realm.RealmChangeListener
@@ -19,7 +19,7 @@ import io.realm.RealmModel
 import io.realm.RealmResults
 
 //as of May 29, 2017, Realm does not support RxJava2.0, so below, custom implementation is necessary
-fun <T : RealmModel> RealmResults<T>.asFlowable(): Flowable<RealmResults<T>> {
+internal fun <T : RealmModel> RealmResults<T>.asFlowable(): Flowable<RealmResults<T>> {
     return Flowable.create({ emitter: FlowableEmitter<RealmResults<T>> ->
         emitter.onNext(this@asFlowable)
         val changeListener = RealmChangeListener<RealmResults<T>> { data -> emitter.onNext(data) }
