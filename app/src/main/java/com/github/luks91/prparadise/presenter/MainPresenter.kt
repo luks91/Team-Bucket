@@ -14,6 +14,7 @@
 package com.github.luks91.prparadise.presenter
 
 import android.content.Context
+import android.util.Log
 import com.github.luks91.prparadise.MainView
 import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.model.*
@@ -27,6 +28,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class MainPresenter(context: Context) : MvpPresenter<MainView> {
 
@@ -43,21 +45,23 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
         val requestUserCredentialsObservable = view.requestUserCredentials().publish().refCount()
         credentialsProvidingSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventCredentialsInvalid::class.java)
                 .observeOn(AndroidSchedulers.mainThread())
-                .concatMap { requestUserCredentialsObservable }
+                .flatMap { requestUserCredentialsObservable }
                 .subscribe { credentials -> ReactiveBus.INSTANCE.post(credentials) }
 
         dataPersistenceSubscription = persistenceProvider.subscribeRepositoriesPersisting()
 
-        val requestRepositoriesSelection = connectionProvider.obtainConnection().flatMap { connection ->
+        val requestRepositoriesSelection = connectionProvider.obtainConnection()
+                .flatMap { connection ->
                     repositoriesSelection(connection, view, projectSelection(connection, view))
                 }.publish().refCount()
 
         repositoriesProvidingSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventRepositoriesMissing::class.java)
-                .switchMap { requestRepositoriesSelection.firstOrError().toObservable() }
+                .switchMap { requestRepositoriesSelection }
                 .subscribe({ repositories -> ReactiveBus.INSTANCE.post(ReactiveBus.EventRepositories(
                         MainPresenter::class.java.simpleName, repositories)) })
 
         noNetworkSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventNoNetworkConnection::class.java)
+                .debounce(100, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { _ -> view.showNoNetworkNotification() }
     }

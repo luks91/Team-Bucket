@@ -15,6 +15,7 @@ package com.github.luks91.prparadise.presenter
 
 import android.content.Context
 import android.net.Uri
+import android.webkit.URLUtil
 import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.ReviewersView
 import com.github.luks91.prparadise.model.*
@@ -27,7 +28,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
-import io.reactivex.functions.Function3
+import io.reactivex.functions.BiFunction
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
 
@@ -53,18 +54,19 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
         return Observable.combineLatest(
                 view.intentPullToRefresh().startWith { Object() },
                 connectionProvider.obtainConnection(),
-                persistenceProvider.selectedRepositories(),
-                Function3<Any, BitbucketConnection, List<Repository>, Observable<Pair<List<PullRequest>, String>>> {
-                    _, (serverUrl, api, token), repositories ->
-                    Observable.fromIterable(repositories).flatMap { (slug, _, project) ->
-                        BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start) }
-                                .subscribeOn(Schedulers.io())
-                                .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
-                                .switchIfEmpty(Observable.just(listOf()))
-                                .reduce { t1, t2 -> t1 + t2 }.toObservable()
-                    }.reduce { t1, t2 -> t1 + t2 }.map { list -> Pair(list, serverUrl) }.toObservable()
-                }
-        ).switchMap { pullRequestsObservable -> pullRequestsObservable }.publish()
+                BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn }
+        ).switchMap { (serverUrl, api, token) ->
+            persistenceProvider.selectedRepositories()
+                    .switchMap { list ->
+                        Observable.fromIterable(list)
+                                .flatMap { (slug, _, project) ->
+                                    BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start) }
+                                    .subscribeOn(Schedulers.io())
+                                    .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
+                                }.reduce { t1, t2 -> t1 + t2 }.map { list -> Pair(list, serverUrl) }.toObservable()
+                                .switchIfEmpty(Observable.just(Pair(listOf(), serverUrl)))
+                    }
+        }.publish()
     }
 
     private fun subscribeProvidingReviewers(pullRequests: ConnectableObservable<Pair<List<PullRequest>, String>>,
@@ -111,11 +113,13 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
     private fun subscribeImageLoading(view: ReviewersView): Disposable {
         return view.intentLoadAvatarImage()
                 .subscribe { (serverUrl, urlPath, target) ->
-                    Picasso.with(this@ReviewersPresenter.context)
-                            .load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
-                            .placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
-                            .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
-                            .into(target)
+                        URLUtil.isValidUrl(urlPath)
+
+                        Picasso.with(this@ReviewersPresenter.context)
+                                .load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
+                                .placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
+                                .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
+                                .into(target)
                 }
     }
 

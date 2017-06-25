@@ -68,8 +68,9 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                     selectedReviewer = null
                 } else if (expandedReviewerIndex != index) {
                     if (expandedReviewerIndex != Int.MAX_VALUE) {
-                        pullRequestsList.clear()
+                        notifyItemChanged(expandedReviewerIndex, reviewer)
                         notifyItemRangeRemoved(expandedReviewerIndex + 1, pullRequestsCount)
+                        pullRequestsList.clear()
                     }
 
                     expandArrow.animate().rotation(180f).setDuration(300).start()
@@ -79,7 +80,15 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                 }
             }
 
-            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, ImageViewTarget(reviewerAvatar))
+            val viewTarget = ImageViewTarget(reviewerAvatar)
+            reviewerAvatar.tag = viewTarget //Picasso holds a WeakReference to the target, we need to strongly hold it here
+            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, viewTarget)
+        }
+
+        fun updateItemSelection(reviewer: Reviewer, selectedReviewer: Reviewer) {
+            if (selectedReviewer != reviewer) {
+                expandArrow.animate().rotation(0f).setDuration(300).start()
+            }
         }
     }
 
@@ -156,6 +165,20 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
             is DataViewHolder -> holder.fillIn(
                     reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], index)
             is PullRequestViewHolder -> holder.fillIn(pullRequestsList[index - expandedReviewerIndex - 1])
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, index: Int, payloads: MutableList<Any>?) {
+        if (payloads != null && !payloads.isEmpty()) {
+            for (payload in payloads) {
+                if (payload is Reviewer && holder is DataViewHolder) {
+                    holder.updateItemSelection(
+                            reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size],
+                            payload)
+                }
+            }
+        } else {
+            super.onBindViewHolder(holder, index, payloads)
         }
     }
 

@@ -55,8 +55,7 @@ internal class ConnectionProvider(private val context: Context, private val pref
 
     private fun encrypt(crypto: Crypto, credentials: BitbucketCredentials): String {
         val jsonCredentials = credentialsAdapter.toJson(credentials)
-        val encodedBytes = crypto.encrypt(jsonCredentials.toByteArray(codingCharset),
-                Entity.create(credentialsEntity))
+        val encodedBytes = crypto.encrypt(jsonCredentials.toByteArray(codingCharset), Entity.create(credentialsEntity))
         return Base64.encodeToString(encodedBytes, Base64.DEFAULT)
     }
 

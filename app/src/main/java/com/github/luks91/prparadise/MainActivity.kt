@@ -17,6 +17,7 @@ import android.os.Bundle
 import android.support.annotation.StringRes
 import android.support.design.widget.TabLayout
 import android.support.v4.view.ViewPager
+import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
 import com.github.luks91.prparadise.adapter.FragmentsPagerAdapter
@@ -82,8 +83,10 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>() {
                         .itemsCallbackMultiChoice(null, { _, _, _ -> true })
                         .onPositive { dialog, _ ->
                             emitter.onNext(dialog.selectedIndices!!.asList())
+                            emitter.onComplete()
                         }
                         .cancelListener {
+                            emitter.onNext(listOf())
                             emitter.onComplete()
                         }
                         .positiveText(R.string.confirm).show()
