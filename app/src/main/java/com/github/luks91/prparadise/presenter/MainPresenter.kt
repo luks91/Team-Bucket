@@ -23,7 +23,7 @@ import com.github.luks91.prparadise.util.ReactiveBus
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposables
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
@@ -35,34 +35,31 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
             ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
     private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
 
-    private var credentialsProvidingSubscription: Disposable = Disposables.empty()
-    private var repositoriesProvidingSubscription: Disposable = Disposables.empty()
-    private var noNetworkSubscription: Disposable = Disposables.empty()
-    private var dataPersistenceSubscription: Disposable = Disposables.empty()
+    private var disposable = Disposables.empty()
 
     override fun attachView(view: MainView) {
         val requestUserCredentialsObservable = view.requestUserCredentials().publish().refCount()
-        credentialsProvidingSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventCredentialsInvalid::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap { requestUserCredentialsObservable }
-                .subscribe { credentials -> ReactiveBus.INSTANCE.post(credentials) }
-
-        dataPersistenceSubscription = persistenceProvider.subscribeRepositoriesPersisting()
 
         val requestRepositoriesSelection = connectionProvider.obtainConnection()
                 .flatMap { connection ->
                     repositoriesSelection(connection, view, projectSelection(connection, view))
                 }.publish().refCount()
 
-        repositoriesProvidingSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventRepositoriesMissing::class.java)
-                .switchMap { requestRepositoriesSelection }
-                .subscribe({ repositories -> ReactiveBus.INSTANCE.post(ReactiveBus.EventRepositories(
-                        MainPresenter::class.java.simpleName, repositories)) })
-
-        noNetworkSubscription = ReactiveBus.INSTANCE.receive(ReactiveBus.EventNoNetworkConnection::class.java)
-                .debounce(100, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { _ -> view.showNoNetworkNotification() }
+        disposable = CompositeDisposable(
+                ReactiveBus.INSTANCE.receive(ReactiveBus.EventCredentialsInvalid::class.java)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .flatMap { requestUserCredentialsObservable }
+                        .subscribe { credentials -> ReactiveBus.INSTANCE.post(credentials) },
+                persistenceProvider.subscribeRepositoriesPersisting(),
+                ReactiveBus.INSTANCE.receive(ReactiveBus.EventRepositoriesMissing::class.java)
+                        .switchMap { requestRepositoriesSelection }
+                        .subscribe({ repositories -> ReactiveBus.INSTANCE.post(ReactiveBus.EventRepositories(
+                                MainPresenter::class.java.simpleName, repositories)) }),
+                ReactiveBus.INSTANCE.receive(ReactiveBus.EventNoNetworkConnection::class.java)
+                        .debounce(100, TimeUnit.MILLISECONDS)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { _ -> view.showNoNetworkNotification() }
+        )
     }
 
     private fun projectSelection(connection: BitbucketConnection, view: MainView): Observable<Project> {
@@ -108,9 +105,6 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
     }
 
     override fun detachView(retainInstance: Boolean) {
-        credentialsProvidingSubscription.dispose()
-        dataPersistenceSubscription.dispose()
-        repositoriesProvidingSubscription.dispose()
-        noNetworkSubscription.dispose()
+        disposable.dispose()
     }
 }

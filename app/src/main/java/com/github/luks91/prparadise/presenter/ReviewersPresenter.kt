@@ -23,7 +23,6 @@ import com.github.luks91.prparadise.persistence.PersistenceProvider
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
-import com.squareup.picasso.RequestCreator
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
