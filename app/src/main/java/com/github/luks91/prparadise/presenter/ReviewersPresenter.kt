@@ -23,6 +23,7 @@ import com.github.luks91.prparadise.persistence.PersistenceProvider
 import com.github.luks91.prparadise.rest.BitbucketApi
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.RequestCreator
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -113,13 +114,13 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
     private fun subscribeImageLoading(view: ReviewersView): Disposable {
         return view.intentLoadAvatarImage()
                 .subscribe { (serverUrl, urlPath, target) ->
-                        URLUtil.isValidUrl(urlPath)
+                    val requestBuilder = Picasso.with(this@ReviewersPresenter.context)
+                    val requestCreator = if (URLUtil.isValidUrl(urlPath)) requestBuilder.load(urlPath)
+                            else requestBuilder.load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
 
-                        Picasso.with(this@ReviewersPresenter.context)
-                                .load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
-                                .placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
-                                .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
-                                .into(target)
+                    requestCreator.placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
+                            .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
+                            .into(target)
                 }
     }
 

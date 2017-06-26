@@ -67,7 +67,7 @@ interface BitbucketApi {
     ): Observable<PagedResponse<Project>>
 
     companion object Utility {
-        val PAGE_SIZE = 50
+        const val PAGE_SIZE = 50
 
         fun <TData> queryPaged(generator: (start: Int) -> Observable<PagedResponse<TData>>): Observable<List<TData>> {
             return Observable.generate<List<TData>, BehaviorSubject<Int>>(

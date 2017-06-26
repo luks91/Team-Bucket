@@ -14,7 +14,6 @@
 package com.github.luks91.prparadise.presenter
 
 import android.content.Context
-import android.util.Log
 import com.github.luks91.prparadise.MainView
 import com.github.luks91.prparadise.R
 import com.github.luks91.prparadise.model.*
@@ -66,7 +65,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                 .subscribe { _ -> view.showNoNetworkNotification() }
     }
 
-    fun projectSelection(connection: BitbucketConnection, view: MainView): Observable<Project> {
+    private fun projectSelection(connection: BitbucketConnection, view: MainView): Observable<Project> {
         return Observable.just(connection).flatMap { (_, api, token) ->
                         BitbucketApi.queryPaged { start -> api.getProjects(token, start) }
                                 .subscribeOn(Schedulers.io())
@@ -77,7 +76,8 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                     .concatMapIterable { list -> list }
     }
 
-    fun <T> requestUserToSelect(from: List<T>, view: MainView, labelFunction: (T) -> String): Observable<List<T>> {
+    private inline fun <T> requestUserToSelect(from: List<T>, view: MainView,
+                                               crossinline labelFunction: (T) -> String): Observable<List<T>> {
         return Observable.just(from).zipWith(
                 Observable.just(from)
                         .map { list -> list.map { item -> labelFunction.invoke(item) } }
@@ -89,7 +89,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                 })
     }
 
-    fun repositoriesSelection(connection: BitbucketConnection, view: MainView, projects: Observable<Project>)
+    private fun repositoriesSelection(connection: BitbucketConnection, view: MainView, projects: Observable<Project>)
             : Observable<List<Repository>> {
 
         return Observable.just(connection)

@@ -160,14 +160,6 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, index: Int) {
-        when(holder) {
-            is DataViewHolder -> holder.fillIn(
-                    reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], index)
-            is PullRequestViewHolder -> holder.fillIn(pullRequestsList[index - expandedReviewerIndex - 1])
-        }
-    }
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, index: Int, payloads: MutableList<Any>?) {
         if (payloads != null && !payloads.isEmpty()) {
             for (payload in payloads) {
@@ -179,6 +171,14 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
             }
         } else {
             super.onBindViewHolder(holder, index, payloads)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, index: Int) {
+        when(holder) {
+            is DataViewHolder -> holder.fillIn(
+                    reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], index)
+            is PullRequestViewHolder -> holder.fillIn(pullRequestsList[index - expandedReviewerIndex - 1])
         }
     }
 
