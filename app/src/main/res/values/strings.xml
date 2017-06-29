@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PR Paradise</string>
+    <string name="app_name">Team Bucket</string>
     <string name="bitbucket_auth_header">Authenticate with Bitbucket</string>
     <string name="hint_url">BitBucket URL</string>
     <string name="hint_username">Username</string>
