@@ -13,8 +13,10 @@
 
 package com.github.luks91.teambucket.presenter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.text.TextUtils
 import android.util.Base64
 import com.facebook.android.crypto.keychain.AndroidConceal
 import com.facebook.android.crypto.keychain.SharedPrefsBackedKeyChain
@@ -37,6 +39,7 @@ internal class ConnectionProvider(private val context: Context, private val pref
     private val prefKey: String = "avatar_check_sum"
     private val credentialsAdapter = Moshi.Builder().build().adapter<BitbucketCredentials>(BitbucketCredentials::class.java)!!
 
+    @SuppressLint("ApplySharedPref") //Committed on from a background thread.
     fun obtainConnection(): Observable<BitbucketConnection> {
         return obtainSecurityCrypto().flatMap { crypto ->
             Observable.merge(
@@ -65,11 +68,13 @@ internal class ConnectionProvider(private val context: Context, private val pref
         if (!encryptedString.isEmpty()) {
             val decodedBytes = crypto.decrypt(Base64.decode(encryptedString, Base64.DEFAULT), Entity.create(credentialsEntity))
             val credentials = credentialsAdapter.fromJson(decodedBytes.toString(codingCharset))
-            return Observable.just(credentials)
-        } else {
-            return Observable.empty<BitbucketCredentials>().doOnSubscribe {
-                ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
+            if (!TextUtils.isEmpty(credentials.bitBucketUrl)) {
+                return Observable.just(credentials)
             }
+        }
+
+        return Observable.empty<BitbucketCredentials>().doOnSubscribe {
+            ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
         }
     }
 }
