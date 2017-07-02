@@ -1,16 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--
+ * Copyright (c) 2017-present, PR Paradise Contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ * the License for the specific language governing permissions and limitations under the License.
+-->
+
 <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
                                     xmlns:android="http://schemas.android.com/apk/res/android"
                                     xmlns:tools="http://schemas.android.com/tools"
                                     android:id="@+id/card_view"
                                     android:layout_gravity="center"
                                     android:layout_width="match_parent"
-                                    android:layout_height="130dp"
-                                    android:layout_marginStart="8dp"
-                                    android:layout_marginEnd="8dp"
+                                    android:layout_height="@dimen/pull_request_card_height"
+                                    android:layout_marginStart="@dimen/margin_8dp"
+                                    android:layout_marginEnd="@dimen/margin_8dp"
                                     android:layout_marginTop="0dp"
-                                    android:layout_marginBottom="8dp"
-                                    card_view:cardCornerRadius="2dp">
+                                    android:layout_marginBottom="@dimen/margin_8dp"
+                                    card_view:cardCornerRadius="@dimen/card_corner_radius">
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
@@ -20,19 +34,15 @@
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="53dp"
-            android:paddingEnd="8dp"
+            android:layout_height="@dimen/avatar_size"
+            android:paddingEnd="@dimen/margin_8dp"
             android:paddingStart="0dp"
             android:gravity="center|start"
             tools:text="Szczyglowski Lukasz-KXCQ63"
             android:maxLines="2"
             android:ellipsize="end"
             android:textColor="@color/secondary_text"
-            android:textSize="16sp"
-            tools:layout_conversion_absoluteX="0dp"
-            tools:layout_conversion_absoluteY="0dp"
-            tools:layout_conversion_absoluteWidth="395dp"
-            tools:layout_conversion_absoluteHeight="64dp"
+            android:textSize="@dimen/secondary_text_size"
             android:id="@+id/reviewAuthor"
             card_view:layout_constraintTop_toTopOf="parent"
             card_view:layout_constraintRight_toLeftOf="@+id/firstReviewer"
@@ -43,139 +53,115 @@
         <TextView
             android:id="@+id/reviewTitle"
             tools:text="[IMW_MOBILEAPP-898] Location Service randomly crashed"
-            android:textSize="16sp"
+            android:textSize="@dimen/secondary_text_size"
             android:textColor="@color/primary_text"
             android:layout_height="wrap_content"
             android:lines="2"
             android:ellipsize="end"
-            tools:layout_conversion_absoluteX="0dp"
-            tools:layout_conversion_absoluteY="64dp"
-            tools:layout_conversion_absoluteWidth="395dp"
-            tools:layout_conversion_absoluteHeight="16dp"
             card_view:layout_constraintRight_toRightOf="parent"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewAuthor"
             android:layout_width="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginStart="@dimen/margin_8dp"
+            android:layout_marginEnd="@dimen/margin_8dp"
             card_view:layout_constraintLeft_toLeftOf="parent"/>
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="53dp"
-            android:padding="8dp"
-            tools:src="@drawable/avatar"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:padding="@dimen/margin_8dp"
+            tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
-            tools:layout_conversion_absoluteX="0dp"
-            tools:layout_conversion_absoluteY="89dp"
-            tools:layout_conversion_absoluteWidth="48dp"
-            tools:layout_conversion_absoluteHeight="53dp"
-            android:id="@+id/firstReviewer"
-            card_view:layout_constraintRight_toLeftOf="@+id/secondReviewer"
-            card_view:layout_constraintTop_toTopOf="parent"/>
-
-        <ImageView
-            android:layout_width="48dp"
-            android:layout_height="53dp"
-            android:padding="8dp"
-            tools:src="@drawable/avatar"
-            android:contentDescription="@string/reviewer_avatar_content_desc"
-            tools:layout_conversion_absoluteX="0dp"
-            tools:layout_conversion_absoluteY="89dp"
-            tools:layout_conversion_absoluteWidth="48dp"
-            tools:layout_conversion_absoluteHeight="53dp"
             android:id="@+id/authorAvatar"
             card_view:layout_constraintTop_toTopOf="parent"
             android:layout_marginTop="0dp"
             card_view:layout_constraintLeft_toLeftOf="parent"/>
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="53dp"
-            android:padding="8dp"
-            tools:src="@drawable/avatar"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:padding="@dimen/margin_8dp"
+            tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
-            tools:layout_conversion_absoluteX="0dp"
-            tools:layout_conversion_absoluteY="89dp"
-            tools:layout_conversion_absoluteWidth="48dp"
-            tools:layout_conversion_absoluteHeight="53dp"
+            android:id="@+id/firstReviewer"
+            card_view:layout_constraintRight_toLeftOf="@+id/secondReviewer"
+            card_view:layout_constraintTop_toTopOf="parent"/>
+
+        <ImageView
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:padding="@dimen/margin_8dp"
+            tools:src="@drawable/ic_launcher"
+            android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/secondReviewer"
             card_view:layout_constraintRight_toLeftOf="@+id/thirdReviewer"
             card_view:layout_constraintTop_toTopOf="parent"/>
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="53dp"
-            android:padding="8dp"
-            tools:src="@drawable/avatar"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:padding="@dimen/margin_8dp"
+            tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
-            tools:layout_conversion_absoluteX="48dp"
-            tools:layout_conversion_absoluteY="89dp"
-            tools:layout_conversion_absoluteWidth="48dp"
-            tools:layout_conversion_absoluteHeight="53dp"
             android:id="@+id/thirdReviewer"
             card_view:layout_constraintRight_toLeftOf="@+id/fourthReviewer"
             card_view:layout_constraintTop_toTopOf="parent"/>
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="53dp"
-            android:padding="8dp"
-            tools:src="@drawable/avatar"
+            android:layout_width="@dimen/avatar_size"
+            android:layout_height="@dimen/avatar_size"
+            android:padding="@dimen/margin_8dp"
+            tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
-            tools:layout_conversion_absoluteX="96dp"
-            tools:layout_conversion_absoluteY="89dp"
-            tools:layout_conversion_absoluteWidth="48dp"
-            tools:layout_conversion_absoluteHeight="53dp"
             android:id="@+id/fourthReviewer"
             card_view:layout_constraintRight_toRightOf="parent"
             card_view:layout_constraintTop_toTopOf="parent"/>
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/reviewBranch"
             android:textColor="@color/secondary_text"
-            tools:text="lukasz/imw_mobileapp-880/best_fix_ever_done"
+            tools:text="lukasz/task/primary_work"
+            android:maxWidth="@dimen/review_branch_max_width"
             android:ellipsize="end"
             android:lines="1"
-            android:maxLength="30"
-            android:minWidth="80dp"
-            android:layout_marginStart="8dp"
-            card_view:layout_constraintLeft_toLeftOf="parent"
+            android:textSize="@dimen/secondary_text_size"
+            android:layout_marginStart="@dimen/margin_8dp"
             android:layout_marginTop="7dp"
+            card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
-            android:layout_marginLeft="8dp"/>
+            card_view:layout_constraintRight_toLeftOf="@+id/prDirectionImage"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/secondary_text"
             android:id="@+id/targetBranch"
-            tools:text="develop"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="7dp"
+            tools:text="development_branch"
+            android:layout_marginLeft="@dimen/margin_8dp"
+            android:layout_marginTop="@dimen/margin_8dp"
             android:ellipsize="end"
             android:lines="1"
-            android:minWidth="80dp"
+            android:textSize="@dimen/secondary_text_size"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
-            card_view:layout_constraintLeft_toRightOf="@+id/imageView11"
-            android:layout_marginRight="8dp"
-            card_view:layout_constraintRight_toRightOf="parent"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"/>
+            card_view:layout_constraintLeft_toRightOf="@+id/prDirectionImage"
+            android:layout_marginRight="@dimen/margin_8dp"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            card_view:layout_constraintHorizontal_weight="2"
+            android:layout_marginStart="0dp"
+            android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
-            android:layout_width="27dp"
-            android:layout_height="17dp"
+            android:layout_width="@dimen/arrow_dimen_width"
+            android:layout_height="@dimen/arrow_dimen_height"
             card_view:srcCompat="@drawable/ic_trending_flat_black_24dp"
-            android:id="@+id/imageView11"
+            android:id="@+id/prDirectionImage"
             card_view:layout_constraintLeft_toRightOf="@+id/reviewBranch"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"
-            card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"/>
-
+            card_view:layout_constraintEnd_toStartOf="@+id/targetBranch"
+            android:layout_marginTop="@dimen/margin_8dp"
+            android:layout_marginStart="@dimen/margin_8dp"
+            card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
+            android:layout_marginEnd="@dimen/margin_8dp"/>
 
     </android.support.constraint.ConstraintLayout>
-
-
 </android.support.v7.widget.CardView>

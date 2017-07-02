@@ -21,6 +21,7 @@ import com.github.luks91.teambucket.ReviewersView
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.rest.BitbucketApi
+import com.github.luks91.teambucket.util.PicassoCircleTransformation
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
@@ -118,6 +119,7 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
                             else requestBuilder.load(Uri.parse(serverUrl).buildUpon().appendEncodedPath(urlPath).build())
 
                     requestCreator.placeholder(R.drawable.ic_sentiment_satisfied_black_24dp)
+                            .transform(PicassoCircleTransformation())
                             .error(R.drawable.ic_sentiment_very_satisfied_black_24dp)
                             .into(target)
                 }
