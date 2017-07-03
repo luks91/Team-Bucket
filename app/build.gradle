@@ -10,8 +10,8 @@ android {
         applicationId "com.github.luks91.teambucket"
         minSdkVersion 23
         targetSdkVersion 25
-        versionCode 3
-        versionName "01.00.02-BETA"
+        versionCode 4
+        versionName "01.00.03-BETA"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
