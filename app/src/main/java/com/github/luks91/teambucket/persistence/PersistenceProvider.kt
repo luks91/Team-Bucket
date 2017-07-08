@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.persistence
 
 import android.os.HandlerThread
+import android.util.Log
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.Repository
 import com.github.luks91.teambucket.model.User
@@ -23,8 +24,11 @@ import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Timed
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import java.util.concurrent.TimeUnit
 
 class PersistenceProvider(context: android.content.Context) {
 
@@ -111,5 +115,15 @@ class PersistenceProvider(context: android.content.Context) {
                             .toList().toFlowable()
                     }.toObservable()
         }.subscribeOn(looperScheduler)
+    }
+
+    fun teamMembersPersisting(teamMembers: Observable<Timed<List<User>>>): Observable<Any> {
+        //TODO-#11: Store team members in Realm
+        return teamMembers.cast(Any::class.java)
+    }
+
+    fun teamMembers(): Observable<Timed<List<User>>> {
+        //TODO-#11: Store team members in Realm
+        return Observable.just(Timed<List<User>>(listOf(), System.currentTimeMillis(), TimeUnit.MILLISECONDS))
     }
 }

@@ -22,99 +22,113 @@
                                     android:layout_height="@dimen/pull_request_card_height"
                                     android:layout_marginStart="@dimen/margin_8dp"
                                     android:layout_marginEnd="@dimen/margin_8dp"
-                                    android:layout_marginTop="0dp"
+                                    android:layout_marginTop="-8dp"
                                     android:layout_marginBottom="@dimen/margin_8dp"
-                                    card_view:cardCornerRadius="@dimen/card_corner_radius">
+                                    card_view:cardElevation="0dp"
+                                    card_view:cardCornerRadius="0dp">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_line_height"
+        android:layout_marginStart="@dimen/margin_16dp"
+        android:layout_marginEnd="@dimen/margin_16dp"
+        android:background="@color/divider_line_color"/>
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
+        android:layout_marginEnd="@dimen/margin_8dp"
         android:orientation="vertical">
 
         <TextView
             android:layout_width="0dp"
-            android:layout_height="@dimen/avatar_size"
+            android:layout_height="wrap_content"
             android:paddingEnd="@dimen/margin_8dp"
             android:paddingStart="0dp"
-            android:gravity="center|start"
-            tools:text="Szczyglowski Lukasz-KXCQ63"
-            android:maxLines="2"
+            tools:text="Szczyglowski"
+            android:maxLines="1"
             android:ellipsize="end"
             android:textColor="@color/secondary_text"
-            android:textSize="@dimen/secondary_text_size"
+            android:textSize="@dimen/pull_request_secondary_text_size"
             android:id="@+id/reviewAuthor"
             card_view:layout_constraintTop_toTopOf="parent"
-            card_view:layout_constraintRight_toLeftOf="@+id/firstReviewer"
-            android:layout_marginTop="0dp"
-            card_view:layout_constraintHorizontal_bias="0.0"
-            card_view:layout_constraintLeft_toRightOf="@+id/authorAvatar"/>
+            card_view:layout_constraintStart_toEndOf="@+id/authorAvatar"
+            card_view:layout_constraintEnd_toStartOf="@+id/firstReviewer"
+            android:layout_marginEnd="@dimen/margin_8dp"
+            android:layout_marginTop="@dimen/margin_8dp"/>
 
         <TextView
             android:id="@+id/reviewTitle"
             tools:text="[IMW_MOBILEAPP-898] Location Service randomly crashed"
             android:textSize="@dimen/secondary_text_size"
             android:textColor="@color/primary_text"
-            android:layout_height="wrap_content"
-            android:lines="2"
+            android:layout_height="@dimen/review_title_height"
+            android:lines="1"
             android:ellipsize="end"
-            card_view:layout_constraintRight_toRightOf="parent"
-            card_view:layout_constraintTop_toBottomOf="@+id/reviewAuthor"
+            android:gravity="center|start"
+            card_view:layout_constraintEnd_toEndOf="parent"
             android:layout_width="0dp"
-            android:layout_marginStart="@dimen/margin_8dp"
-            android:layout_marginEnd="@dimen/margin_8dp"
-            card_view:layout_constraintLeft_toLeftOf="parent"/>
+            card_view:layout_constraintTop_toBottomOf="@+id/reviewAuthor"
+            card_view:layout_constraintStart_toEndOf="@+id/authorAvatar"
+            card_view:layout_constraintEnd_toStartOf="@+id/firstReviewer"
+            android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
-            android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size"
-            android:padding="@dimen/margin_8dp"
+            android:layout_height="@dimen/author_avatar_size"
+            android:padding="@dimen/margin_16dp"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/authorAvatar"
             card_view:layout_constraintTop_toTopOf="parent"
-            android:layout_marginTop="0dp"
-            card_view:layout_constraintLeft_toLeftOf="parent"/>
+            card_view:layout_constraintStart_toStartOf="parent"
+            android:layout_width="@dimen/author_avatar_size"
+            android:foregroundGravity="center"
+            card_view:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageView
-            android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size"
-            android:padding="@dimen/margin_8dp"
+            android:layout_width="@dimen/reviewer_avatar_size"
+            android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/firstReviewer"
-            card_view:layout_constraintRight_toLeftOf="@+id/secondReviewer"
-            card_view:layout_constraintTop_toTopOf="parent"/>
+            card_view:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="@dimen/margin_8dp"
+            card_view:layout_constraintEnd_toStartOf="@+id/secondReviewer"
+            android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
-            android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size"
-            android:padding="@dimen/margin_8dp"
+            android:layout_width="@dimen/reviewer_avatar_size"
+            android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/secondReviewer"
-            card_view:layout_constraintRight_toLeftOf="@+id/thirdReviewer"
-            card_view:layout_constraintTop_toTopOf="parent"/>
+            card_view:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="@dimen/margin_8dp"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
-            android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size"
-            android:padding="@dimen/margin_8dp"
+            android:layout_width="@dimen/reviewer_avatar_size"
+            android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/thirdReviewer"
-            card_view:layout_constraintRight_toLeftOf="@+id/fourthReviewer"
-            card_view:layout_constraintTop_toTopOf="parent"/>
+            card_view:layout_constraintEnd_toStartOf="@+id/fourthReviewer"
+            android:layout_marginEnd="@dimen/margin_8dp"
+            android:layout_marginTop="@dimen/margin_8dp"
+            card_view:layout_constraintTop_toBottomOf="@+id/firstReviewer"/>
 
         <ImageView
-            android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size"
-            android:padding="@dimen/margin_8dp"
+            android:layout_width="@dimen/reviewer_avatar_size"
+            android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/fourthReviewer"
-            card_view:layout_constraintRight_toRightOf="parent"
-            card_view:layout_constraintTop_toTopOf="parent"/>
+            card_view:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="@dimen/margin_8dp"
+            android:layout_marginTop="@dimen/margin_8dp"
+            card_view:layout_constraintTop_toBottomOf="@+id/secondReviewer"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -125,12 +139,11 @@
             android:maxWidth="@dimen/review_branch_max_width"
             android:ellipsize="end"
             android:lines="1"
-            android:textSize="@dimen/secondary_text_size"
-            android:layout_marginStart="@dimen/margin_8dp"
-            android:layout_marginTop="7dp"
-            card_view:layout_constraintStart_toStartOf="parent"
+            android:textSize="@dimen/pull_request_secondary_text_size"
+            android:layout_marginStart="0dp"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
-            card_view:layout_constraintRight_toLeftOf="@+id/prDirectionImage"/>
+            card_view:layout_constraintEnd_toStartOf="@+id/prDirectionImage"
+            card_view:layout_constraintStart_toEndOf="@+id/authorAvatar"/>
 
         <TextView
             android:layout_width="0dp"
@@ -138,30 +151,27 @@
             android:textColor="@color/secondary_text"
             android:id="@+id/targetBranch"
             tools:text="development_branch"
-            android:layout_marginLeft="@dimen/margin_8dp"
-            android:layout_marginTop="@dimen/margin_8dp"
+            android:layout_marginEnd="@dimen/margin_8dp"
             android:ellipsize="end"
             android:lines="1"
-            android:textSize="@dimen/secondary_text_size"
+            android:textSize="@dimen/pull_request_secondary_text_size"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
-            card_view:layout_constraintLeft_toRightOf="@+id/prDirectionImage"
-            android:layout_marginRight="@dimen/margin_8dp"
-            card_view:layout_constraintEnd_toEndOf="parent"
-            card_view:layout_constraintHorizontal_weight="2"
-            android:layout_marginStart="0dp"
-            android:layout_marginEnd="@dimen/margin_8dp"/>
+            card_view:layout_constraintStart_toEndOf="@+id/prDirectionImage"
+            card_view:layout_constraintEnd_toEndOf="@+id/reviewAuthor"
+            card_view:layout_constraintHorizontal_weight="2"/>
 
         <ImageView
             android:layout_width="@dimen/arrow_dimen_width"
             android:layout_height="@dimen/arrow_dimen_height"
             card_view:srcCompat="@drawable/ic_trending_flat_black_24dp"
             android:id="@+id/prDirectionImage"
-            card_view:layout_constraintLeft_toRightOf="@+id/reviewBranch"
+            card_view:layout_constraintStart_toEndOf="@+id/reviewBranch"
             card_view:layout_constraintEnd_toStartOf="@+id/targetBranch"
-            android:layout_marginTop="@dimen/margin_8dp"
-            android:layout_marginStart="@dimen/margin_8dp"
+            android:layout_marginTop="@dimen/branch_target_arrow_margin_top"
+            android:layout_marginStart="@dimen/branch_target_arrow_margin"
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
-            android:layout_marginEnd="@dimen/margin_8dp"/>
+            android:scaleType="fitXY"
+            android:layout_marginEnd="@dimen/branch_target_arrow_margin"/>
 
     </android.support.constraint.ConstraintLayout>
 </android.support.v7.widget.CardView>

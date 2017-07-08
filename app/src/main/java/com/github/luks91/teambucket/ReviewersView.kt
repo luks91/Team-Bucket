@@ -24,6 +24,7 @@ interface ReviewersView : MvpView {
 
     fun onReviewersReceived(reviewers: ReviewersInformation)
     fun onLoadingCompleted()
+    fun onSelfLoadingStarted()
     fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>)
     fun intentPullToRefresh(): Observable<Any>
     fun intentRetrieveReviews(): Observable<IndexedValue<User>>
