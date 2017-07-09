@@ -145,8 +145,8 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
 
         private @DrawableRes fun resourceFromReviewerState(member: PullRequestMember): Int {
             when (member.status) {
-                APPROVED -> return R.drawable.ic_check_24dp
-                NEEDS_WORK -> return R.drawable.ic_cancel_24dp
+                APPROVED -> return R.drawable.ic_approved_24dp
+                NEEDS_WORK -> return R.drawable.ic_needs_work_24dp
                 else -> return 0
             }
         }
