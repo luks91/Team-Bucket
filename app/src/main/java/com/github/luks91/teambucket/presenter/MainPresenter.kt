@@ -63,7 +63,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
     }
 
     private fun projectSelection(connection: BitbucketConnection, view: MainView): Observable<Project> {
-        return Observable.just(connection).flatMap { (_, api, token) ->
+        return Observable.just(connection).flatMap { (_, _, api, token) ->
                         BitbucketApi.queryPaged { start -> api.getProjects(token, start) }
                                 .subscribeOn(Schedulers.io())
                     }
@@ -90,7 +90,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
             : Observable<List<Repository>> {
 
         return Observable.just(connection)
-                .flatMap { (_, api, token) ->
+                .flatMap { (_, _, api, token) ->
                     projects.flatMap { (key) -> Observable.empty<List<Repository>>()
                         BitbucketApi.queryPaged { start -> api.getProjectRepositories(token, key, start) }
                                 .subscribeOn(Schedulers.io())

@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket.model
 
+import android.support.annotation.StringDef
 import android.util.Base64
 import com.github.luks91.teambucket.rest.BitbucketApi
 import com.squareup.moshi.Json
@@ -22,15 +23,17 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.nio.charset.Charset
 
+
+
 val EMPTY_STRING = ""
 
 data class BitbucketCredentials(val bitBucketUrl: String, val username: String, val password: String)
 
-data class BitbucketConnection(val serverUrl: String, val api: BitbucketApi, val token: String) {
+data class BitbucketConnection(val userName: String, val serverUrl: String, val api: BitbucketApi, val token: String) {
     companion object Factory {
         fun from(credentials: BitbucketCredentials): BitbucketConnection {
-            return BitbucketConnection(credentials.bitBucketUrl, createBitbucketApi(credentials.bitBucketUrl),
-                    createBasicToken(credentials.username, credentials.password))
+            return BitbucketConnection(credentials.username, credentials.bitBucketUrl,
+                    createBitbucketApi(credentials.bitBucketUrl), createBasicToken(credentials.username, credentials.password))
         }
 
         private fun createBasicToken(username: String, password: String): String {
@@ -66,7 +69,16 @@ data class User(@Json(name = "id") val id: Int,
 data class PullRequestMember(@Json(name = "user") val user: User,
                              @Json(name = "role") val role: String,
                              @Json(name = "approved") val approved: Boolean,
-                             @Json(name = "status") val status: String)
+                             @Json(name = "status") @ReviewerState val status: String)
+
+
+@Retention(AnnotationRetention.SOURCE)
+@StringDef(NEEDS_WORK, UNAPPROVED, APPROVED)
+annotation class ReviewerState
+
+const val NEEDS_WORK = "NEEDS_WORK"
+const val UNAPPROVED = "UNAPPROVED"
+const val APPROVED = "APPROVED"
 
 data class PullRequest(@Json(name = "id") val id: Long,
                        @Json(name = "title") val title: String,
@@ -74,9 +86,17 @@ data class PullRequest(@Json(name = "id") val id: Long,
                        @Json(name = "updatedDate") val updatedDate: Long,
                        @Json(name = "author") val author: PullRequestMember,
                        @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
-                       @Json(name = "state") val state: String,
+                       @PullRequestStatus @Json(name = "state") val state: String,
                        @Json(name = "fromRef") val sourceBranch: GitReference,
                        @Json(name = "toRef") val targetBranch: GitReference)
+
+@Retention(AnnotationRetention.SOURCE)
+@StringDef(STATUS_OPEN, STATUS_MERGED, STATUS_ALL)
+annotation class PullRequestStatus
+
+const val STATUS_OPEN = "open"
+const val STATUS_MERGED = "merged"
+const val STATUS_ALL = "all"
 
 data class GitReference(@Json(name = "displayId") val displayId: String,
                         @Json(name = "latestCommit") val latestCommit: String)

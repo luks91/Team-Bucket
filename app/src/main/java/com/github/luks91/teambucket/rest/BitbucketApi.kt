@@ -39,6 +39,7 @@ interface BitbucketApi {
             @Path("slug") slug: String,
             @Query("start") start: Int,
             @Query("limit") limit: Int = BitbucketApi.PAGE_SIZE,
+            @PullRequestStatus @Query("state") status: String = STATUS_OPEN,
             @Query("avatarSize") avatarSize: Int = 92
     ): Observable<PagedResponse<PullRequest>>
 
@@ -65,6 +66,12 @@ interface BitbucketApi {
             @Query("start") start: Int,
             @Query("limit") limit: Int = BitbucketApi.PAGE_SIZE
     ): Observable<PagedResponse<Project>>
+
+    @GET("/rest/api/1.0/users/{userName}")
+    fun getUser(
+            @Header("Authorization") token: String,
+            @Path("userName") userName: String
+    ): Observable<User>
 
     companion object Utility {
         const val PAGE_SIZE = 50

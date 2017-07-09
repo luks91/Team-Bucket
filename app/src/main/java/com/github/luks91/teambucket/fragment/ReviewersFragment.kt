@@ -84,6 +84,11 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
         swipeContainer.isRefreshing = false
     }
 
+    override fun onSelfLoadingStarted() {
+        val swipeContainer = view!!.findViewById(R.id.swipeContainer) as SwipeRefreshLayout
+        swipeContainer.isRefreshing = true
+    }
+
     override fun onReviewersReceived(reviewers: ReviewersInformation) {
         dataAdapter.onReviewersReceived(reviewers)
     }

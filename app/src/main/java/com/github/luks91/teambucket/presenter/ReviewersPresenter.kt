@@ -38,6 +38,7 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
     private val connectionProvider: ConnectionProvider =
             ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
     private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
+    private val teamMembersProvider = TeamMembersProvider()
     private var disposable = Disposables.empty()
 
     override fun attachView(view: ReviewersView) {
@@ -45,6 +46,7 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
         disposable = CompositeDisposable(
                 subscribeProvidingReviewers(pullRequests, view),
                 persistenceProvider.pullRequestsPersisting(pullRequests.map { (pullRequests) -> pullRequests }),
+                pullRequests.connect(),
                 pullRequests.connect(),
                 subscribeProvidingPullRequests(view),
                 subscribeImageLoading(view)
@@ -56,7 +58,7 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
                 view.intentPullToRefresh().startWith { Object() },
                 connectionProvider.obtainConnection(),
                 BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn }
-        ).switchMap { (serverUrl, api, token) ->
+        ).switchMap { (_, serverUrl, api, token) ->
             persistenceProvider.selectedRepositories()
                     .switchMap { list ->
                         Observable.fromIterable(list)
@@ -64,33 +66,38 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
                                     BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start) }
                                     .subscribeOn(Schedulers.io())
                                     .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
-                                }.reduce { t1, t2 -> t1 + t2 }.map { list -> Pair(list, serverUrl) }.toObservable()
-                                .switchIfEmpty(Observable.just(Pair(listOf(), serverUrl)))
+                                }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
+                                .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
                     }
-        }.publish()
+        }
+                .doOnSubscribe { view.onSelfLoadingStarted() }
+                .publish()
     }
 
     private fun subscribeProvidingReviewers(pullRequests: ConnectableObservable<Pair<List<PullRequest>, String>>,
                                             view: ReviewersView): Disposable {
-        return pullRequests
-                .map { (pullRequests, serverUrl) -> reviewersInformationFrom(pullRequests, serverUrl) }
+        return Observable.combineLatest(
+                pullRequests,
+                teamMembersProvider.teamMembers(connectionProvider, persistenceProvider,
+                        view.intentPullToRefresh().startWith { Object() }),
+                BiFunction<Pair<List<PullRequest>, String>, List<User>, ReviewersInformation> {
+                    (pullRequests, serverUrl), team ->
+                    reviewersInformationFrom(team, pullRequests, serverUrl)
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext { view.onLoadingCompleted() }
                 .subscribe { prCount -> view.onReviewersReceived(prCount) }
     }
 
-    private fun reviewersInformationFrom(pullRequests: List<PullRequest>, serverUrl: String): ReviewersInformation {
-        val usersToPullRequests = mutableMapOf<User, Int>()
+    private fun reviewersInformationFrom(teamMembers: List<User>, pullRequests: List<PullRequest>, serverUrl: String)
+            : ReviewersInformation {
+
+        val usersToPullRequests = teamMembers.associateBy({it}, {0}).toMutableMap()
         pullRequests.forEach {
             it.reviewers
                     .filterNot { it.approved }
-                    .forEach {
-                        if (!usersToPullRequests.contains(it.user)) {
-                            usersToPullRequests[it.user] = 1
-                        } else {
-                            usersToPullRequests[it.user] = usersToPullRequests[it.user]!! + 1
-                        }
-                    }
+                    .filter { usersToPullRequests.contains(it.user) }
+                    .forEach { usersToPullRequests[it.user] = usersToPullRequests[it.user]!! + 1 }
         }
 
         val returnList = mutableListOf<Reviewer>()
