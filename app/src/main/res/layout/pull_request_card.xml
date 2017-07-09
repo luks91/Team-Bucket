@@ -100,7 +100,7 @@
         <ImageView
             android:layout_width="@dimen/reviewer_state_icon_size"
             android:layout_height="@dimen/reviewer_state_icon_size"
-            tools:src="@drawable/ic_check_24dp"
+            tools:src="@drawable/ic_approved_24dp"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/firstReviewerState"
             card_view:layout_constraintTop_toTopOf="parent"
@@ -122,7 +122,7 @@
         <ImageView
             android:layout_width="@dimen/reviewer_state_icon_size"
             android:layout_height="@dimen/reviewer_state_icon_size"
-            tools:src="@drawable/ic_cancel_24dp"
+            tools:src="@drawable/ic_needs_work_24dp"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/secondReviewerState"
             card_view:layout_constraintTop_toTopOf="parent"
@@ -144,7 +144,7 @@
         <ImageView
             android:layout_width="@dimen/reviewer_state_icon_size"
             android:layout_height="@dimen/reviewer_state_icon_size"
-            tools:src="@drawable/ic_cancel_24dp"
+            tools:src="@drawable/ic_needs_work_24dp"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/thirdReviewerState"
             card_view:layout_constraintEnd_toStartOf="@+id/fourthReviewer"
@@ -166,7 +166,7 @@
         <ImageView
             android:layout_width="@dimen/reviewer_state_icon_size"
             android:layout_height="@dimen/reviewer_state_icon_size"
-            tools:src="@drawable/ic_check_24dp"
+            tools:src="@drawable/ic_approved_24dp"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/fourthReviewerState"
             card_view:layout_constraintEnd_toEndOf="parent"
@@ -207,7 +207,7 @@
         <ImageView
             android:layout_width="@dimen/arrow_dimen_width"
             android:layout_height="@dimen/arrow_dimen_height"
-            card_view:srcCompat="@drawable/ic_trending_flat_black_24dp"
+            card_view:srcCompat="@drawable/ic_arrow_right_24dp"
             android:id="@+id/prDirectionImage"
             card_view:layout_constraintStart_toEndOf="@+id/reviewBranch"
             card_view:layout_constraintEnd_toStartOf="@+id/targetBranch"
