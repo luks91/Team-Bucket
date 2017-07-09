@@ -23,6 +23,8 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.nio.charset.Charset
 
+
+
 val EMPTY_STRING = ""
 
 data class BitbucketCredentials(val bitBucketUrl: String, val username: String, val password: String)
@@ -67,7 +69,16 @@ data class User(@Json(name = "id") val id: Int,
 data class PullRequestMember(@Json(name = "user") val user: User,
                              @Json(name = "role") val role: String,
                              @Json(name = "approved") val approved: Boolean,
-                             @Json(name = "status") val status: String)
+                             @Json(name = "status") @ReviewerState val status: String)
+
+
+@Retention(AnnotationRetention.SOURCE)
+@StringDef(NEEDS_WORK, UNAPPROVED, APPROVED)
+annotation class ReviewerState
+
+const val NEEDS_WORK = "NEEDS_WORK"
+const val UNAPPROVED = "UNAPPROVED"
+const val APPROVED = "APPROVED"
 
 data class PullRequest(@Json(name = "id") val id: Long,
                        @Json(name = "title") val title: String,

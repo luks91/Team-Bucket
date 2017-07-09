@@ -23,4 +23,7 @@
     <color name="icons">#FFFFFF</color>
     <color name="divider">#FFFFFF</color>
     <color name="divider_line_color">#22757575</color>
+    <color name="needs_work_color">#f79232</color>
+    <color name="white">#ffffff</color>
+    <color name="approved_color">#14892c</color>
 </resources>

@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.adapter
 
 import android.content.Context
+import android.support.annotation.DrawableRes
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -22,10 +23,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.model.PullRequest
-import com.github.luks91.teambucket.model.Reviewer
-import com.github.luks91.teambucket.model.ReviewersInformation
-import com.github.luks91.teambucket.model.User
+import com.github.luks91.teambucket.model.*
 import com.squareup.picasso.Target
 import org.apache.commons.lang3.StringUtils
 
@@ -100,17 +98,24 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     }
 
     inner class PullRequestViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        internal var authorName: TextView = itemView.findViewById(R.id.reviewAuthor) as TextView
-        internal var authorAvatar: ImageView = itemView.findViewById(R.id.authorAvatar) as ImageView
+        private val authorName: TextView by lazy { itemView.findViewById(R.id.reviewAuthor) as TextView }
+        private val authorAvatar: ImageView by lazy { itemView.findViewById(R.id.authorAvatar) as ImageView }
 
-        internal var reviewers: Array<ImageView> = arrayOf(itemView.findViewById(R.id.firstReviewer) as ImageView,
-                itemView.findViewById(R.id.secondReviewer) as ImageView,
-                itemView.findViewById(R.id.thirdReviewer) as ImageView,
-                itemView.findViewById(R.id.fourthReviewer) as ImageView)
+        private val reviewers: Array<Pair<ImageView, ImageView>> by lazy {
+            arrayOf(
+                    Pair(itemView.findViewById(R.id.firstReviewer) as ImageView,
+                            itemView.findViewById(R.id.firstReviewerState) as ImageView),
+                    Pair(itemView.findViewById(R.id.secondReviewer) as ImageView,
+                            itemView.findViewById(R.id.secondReviewerState) as ImageView),
+                    Pair(itemView.findViewById(R.id.thirdReviewer) as ImageView,
+                            itemView.findViewById(R.id.thirdReviewerState) as ImageView),
+                    Pair(itemView.findViewById(R.id.fourthReviewer) as ImageView,
+                            itemView.findViewById(R.id.fourthReviewerState) as ImageView))
+        }
 
-        internal var reviewTitle: TextView = itemView.findViewById(R.id.reviewTitle) as TextView
-        internal var reviewBranch: TextView = itemView.findViewById(R.id.reviewBranch) as TextView
-        internal var targetBranch: TextView = itemView.findViewById(R.id.targetBranch) as TextView
+        private val reviewTitle: TextView by lazy { itemView.findViewById(R.id.reviewTitle) as TextView }
+        private val reviewBranch: TextView by lazy { itemView.findViewById(R.id.reviewBranch) as TextView }
+        private val targetBranch: TextView by lazy { itemView.findViewById(R.id.targetBranch) as TextView }
 
         fun fillIn(pullRequest: PullRequest) {
             authorName.text = pullRequest.author.user.displayName
@@ -121,14 +126,28 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
             callback.loadImageFor(serverUrl, pullRequest.author.user.avatarUrlSuffix, ImageViewTarget(authorAvatar))
 
             val pullRequestReviewers = pullRequest.reviewers
-            for ((index, reviewerView) in reviewers.withIndex()) {
+            for ((index, reviewViews) in reviewers.withIndex()) {
+                val reviewerAvatar = reviewViews.first
+                val reviewerState = reviewViews.second
                 if (pullRequestReviewers.size > index) {
-                    callback.loadImageFor(serverUrl, pullRequestReviewers[index].user.avatarUrlSuffix,
-                            ImageViewTarget(reviewerView))
-                    reviewerView.visibility = View.VISIBLE
+                    val pullRequestMember = pullRequestReviewers[index]
+                    callback.loadImageFor(serverUrl, pullRequestMember.user.avatarUrlSuffix,
+                            ImageViewTarget(reviewerAvatar))
+                    reviewerAvatar.visibility = View.VISIBLE
+                    reviewerState.visibility = View.VISIBLE
+                    reviewerState.setImageResource(resourceFromReviewerState(pullRequestMember))
                 } else {
-                    reviewerView.visibility = View.GONE
+                    reviewerAvatar.visibility = View.GONE
+                    reviewerState.visibility = View.GONE
                 }
+            }
+        }
+
+        private @DrawableRes fun resourceFromReviewerState(member: PullRequestMember): Int {
+            when (member.status) {
+                APPROVED -> return R.drawable.ic_check_24dp
+                NEEDS_WORK -> return R.drawable.ic_cancel_24dp
+                else -> return 0
             }
         }
     }

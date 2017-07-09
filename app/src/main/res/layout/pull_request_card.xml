@@ -98,6 +98,17 @@
             android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
+            android:layout_width="@dimen/reviewer_state_icon_size"
+            android:layout_height="@dimen/reviewer_state_icon_size"
+            tools:src="@drawable/ic_check_24dp"
+            android:contentDescription="@string/reviewer_avatar_content_desc"
+            android:id="@+id/firstReviewerState"
+            card_view:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="@dimen/reviewer_state_icon_margin"
+            card_view:layout_constraintEnd_toStartOf="@+id/secondReviewer"
+            android:layout_marginEnd="@dimen/reviewer_state_icon_margin"/>
+
+        <ImageView
             android:layout_width="@dimen/reviewer_avatar_size"
             android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
@@ -107,6 +118,17 @@
             android:layout_marginTop="@dimen/margin_8dp"
             card_view:layout_constraintEnd_toEndOf="parent"
             android:layout_marginEnd="@dimen/margin_8dp"/>
+
+        <ImageView
+            android:layout_width="@dimen/reviewer_state_icon_size"
+            android:layout_height="@dimen/reviewer_state_icon_size"
+            tools:src="@drawable/ic_cancel_24dp"
+            android:contentDescription="@string/reviewer_avatar_content_desc"
+            android:id="@+id/secondReviewerState"
+            card_view:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="@dimen/reviewer_state_icon_margin"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="@dimen/reviewer_state_icon_margin"/>
 
         <ImageView
             android:layout_width="@dimen/reviewer_avatar_size"
@@ -120,6 +142,17 @@
             card_view:layout_constraintTop_toBottomOf="@+id/firstReviewer"/>
 
         <ImageView
+            android:layout_width="@dimen/reviewer_state_icon_size"
+            android:layout_height="@dimen/reviewer_state_icon_size"
+            tools:src="@drawable/ic_cancel_24dp"
+            android:contentDescription="@string/reviewer_avatar_content_desc"
+            android:id="@+id/thirdReviewerState"
+            card_view:layout_constraintEnd_toStartOf="@+id/fourthReviewer"
+            android:layout_marginTop="@dimen/reviewer_state_icon_margin"
+            card_view:layout_constraintTop_toBottomOf="@+id/firstReviewer"
+            android:layout_marginEnd="@dimen/reviewer_state_icon_margin"/>
+
+        <ImageView
             android:layout_width="@dimen/reviewer_avatar_size"
             android:layout_height="@dimen/reviewer_avatar_size"
             tools:src="@drawable/ic_launcher"
@@ -129,6 +162,17 @@
             android:layout_marginEnd="@dimen/margin_8dp"
             android:layout_marginTop="@dimen/margin_8dp"
             card_view:layout_constraintTop_toBottomOf="@+id/secondReviewer"/>
+
+        <ImageView
+            android:layout_width="@dimen/reviewer_state_icon_size"
+            android:layout_height="@dimen/reviewer_state_icon_size"
+            tools:src="@drawable/ic_check_24dp"
+            android:contentDescription="@string/reviewer_avatar_content_desc"
+            android:id="@+id/fourthReviewerState"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="@dimen/reviewer_state_icon_margin"
+            card_view:layout_constraintTop_toBottomOf="@+id/secondReviewer"
+            android:layout_marginEnd="@dimen/reviewer_state_icon_margin"/>
 
         <TextView
             android:layout_width="wrap_content"
