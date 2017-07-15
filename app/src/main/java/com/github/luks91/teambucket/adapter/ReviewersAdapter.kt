@@ -84,10 +84,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                     }
                 }
             }
-
-            val viewTarget = ImageViewTarget(reviewerAvatar)
-            reviewerAvatar.tag = viewTarget //Picasso holds a WeakReference to the target, we need to strongly hold it here
-            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, viewTarget)
+            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, ImageViewTarget(reviewerAvatar))
         }
 
         fun updateItemSelection(reviewer: Reviewer, selectedReviewer: Reviewer) {

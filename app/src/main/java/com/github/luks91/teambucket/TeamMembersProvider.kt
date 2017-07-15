@@ -11,19 +11,24 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.presenter
+package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.presenter.ReviewersPresenter
 import com.github.luks91.teambucket.rest.BitbucketApi
+import com.github.luks91.teambucket.util.ReactiveBus
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.schedulers.Timed
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-internal class TeamMembersProvider {
+class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider,
+                                              val persistenceProvider: PersistenceProvider,
+                                              val eventsBus: ReactiveBus) {
 
     private companion object Util {
         const val PAGES_PER_REPOSITORY = 1L
@@ -32,9 +37,8 @@ internal class TeamMembersProvider {
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
     }
 
-    fun teamMembers(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider,
-                             refreshTicks: Observable<Any>): Observable<List<User>> {
-        val remoteMembership = calculateTeamMembership(connectionProvider, persistenceProvider).publish()
+    fun teamMembers(refreshTicks: Observable<Any>): Observable<List<User>> {
+        val remoteMembership = calculateTeamMembership().publish()
         return refreshTicks.switchMap { _ ->
             persistenceProvider.teamMembers()
                     .switchMap { members -> if (members.haveExpired()) remoteMembership.refCount() else Observable.just(members) }
@@ -48,9 +52,7 @@ internal class TeamMembersProvider {
         return (System.currentTimeMillis() - time()) > TimeUnit.HOURS.toMillis(MEMBERSHIP_TIMEOUT_HOURS) || value().isEmpty()
     }
 
-    private fun calculateTeamMembership(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider)
-            : Observable<Timed<List<User>>> {
-
+    private fun calculateTeamMembership(): Observable<Timed<List<User>>> {
         return Observable.combineLatest(
                 connectionProvider.obtainConnection(),
                 persistenceProvider.selectedRepositories(),
@@ -64,7 +66,8 @@ internal class TeamMembersProvider {
                                 }
                                         .subscribeOn(Schedulers.io())
                                         .take(PAGES_PER_REPOSITORY)
-                                        .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
+                                        .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus,
+                                                ReviewersPresenter::class.java.simpleName))
                             }.reduce { t1, t2 -> t1 + t2 }.toObservable()
                             .compose(intoTeamMembershipOf(userName))
                             .switchIfEmpty(Observable.just(listOf()))
@@ -106,7 +109,7 @@ internal class TeamMembersProvider {
                 }
 
                 return@map team.groupBy { key -> key }.filter { it.value.size >= MINIMUM_USER_OCCURRENCES }
-                        .values.map { it -> it[0] }.toList()
+                        .values.map { it -> it[0] }
             }
         }
     }

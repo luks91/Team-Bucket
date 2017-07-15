@@ -17,11 +17,9 @@ import com.github.luks91.teambucket.model.Repository
 import com.jakewharton.rxrelay2.PublishRelay
 import com.jakewharton.rxrelay2.Relay
 import io.reactivex.Observable
+import javax.inject.Inject
 
-enum class ReactiveBus {
-
-    INSTANCE;
-
+class ReactiveBus @Inject constructor(){
     private val relay: Relay<Any> = PublishRelay.create<Any>().toSerialized()
 
     fun post(event: Any) {

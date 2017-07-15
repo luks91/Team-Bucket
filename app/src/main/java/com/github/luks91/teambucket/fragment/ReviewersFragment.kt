@@ -27,7 +27,11 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import com.github.luks91.teambucket.TeamBucketApplication
 import com.github.luks91.teambucket.adapter.ReviewersAdapter
+import com.github.luks91.teambucket.injection.DaggerFrontendComponent
+import com.github.luks91.teambucket.injection.FrontendComponent
+import com.github.luks91.teambucket.injection.FrontendModule
 import com.github.luks91.teambucket.model.ImageLoadRequest
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.ReviewersInformation
@@ -41,13 +45,21 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
     private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
     private val layoutManager: LinearLayoutManager by lazy { LinearLayoutManager(context) }
     private val dataAdapter: ReviewersAdapter by lazy { ReviewersAdapter(context, this, layoutManager) }
+    private lateinit var frontendComponent: FrontendComponent
 
     companion object Factory {
         fun newInstance() : ReviewersFragment = ReviewersFragment()
     }
 
     override fun createPresenter(): ReviewersPresenter {
-        return ReviewersPresenter(activity as Context)
+        return frontendComponent.reviewersPresenter()
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        frontendComponent = DaggerFrontendComponent.builder()
+                .applicationComponent(TeamBucketApplication.getComponent(context))
+                .frontendModule(FrontendModule(context)).build()
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {

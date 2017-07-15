@@ -20,6 +20,12 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 
 internal class ImageViewTarget(private val imageView: ImageView): Target {
+
+    init {
+        //Picasso holds a WeakReference to the target, we need to strongly hold it here
+        imageView.tag = this
+    }
+
     override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
         imageView.setImageBitmap(bitmap)
     }

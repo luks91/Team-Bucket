@@ -16,12 +16,16 @@ package com.github.luks91.teambucket.presenter
 import android.content.Context
 import android.net.Uri
 import android.webkit.URLUtil
+import com.github.luks91.teambucket.ConnectionProvider
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.ReviewersView
+import com.github.luks91.teambucket.TeamMembersProvider
+import com.github.luks91.teambucket.injection.AppContext
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.rest.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
+import com.github.luks91.teambucket.util.ReactiveBus
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable
@@ -32,13 +36,14 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.functions.BiFunction
 import io.reactivex.observables.ConnectableObservable
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersView> {
+class ReviewersPresenter @Inject constructor(@AppContext private val context: Context,
+                                             private val connectionProvider: ConnectionProvider,
+                                             private val persistenceProvider: PersistenceProvider,
+                                             private val teamMembersProvider: TeamMembersProvider,
+                                             private val eventsBus: ReactiveBus): MvpPresenter<ReviewersView> {
 
-    private val connectionProvider: ConnectionProvider =
-            ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
-    private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
-    private val teamMembersProvider = TeamMembersProvider()
     private var disposable = Disposables.empty()
 
     override fun attachView(view: ReviewersView) {
@@ -65,7 +70,8 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
                                 .flatMap { (slug, _, project) ->
                                     BitbucketApi.queryPaged { start -> api.getPullRequests(token, project.key, slug, start) }
                                     .subscribeOn(Schedulers.io())
-                                    .onErrorResumeNext(BitbucketApi.handleNetworkError(ReviewersPresenter::class.java.simpleName))
+                                    .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus,
+                                            ReviewersPresenter::class.java.simpleName))
                                 }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
                                 .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
                     }
@@ -78,8 +84,7 @@ class ReviewersPresenter(private val context: Context) : MvpPresenter<ReviewersV
                                             view: ReviewersView): Disposable {
         return Observable.combineLatest(
                 pullRequests,
-                teamMembersProvider.teamMembers(connectionProvider, persistenceProvider,
-                        view.intentPullToRefresh().startWith { Object() }),
+                teamMembersProvider.teamMembers(view.intentPullToRefresh().startWith { Object() }),
                 BiFunction<Pair<List<PullRequest>, String>, List<User>, ReviewersInformation> {
                     (pullRequests, serverUrl), team ->
                     reviewersInformationFrom(team, pullRequests, serverUrl)
