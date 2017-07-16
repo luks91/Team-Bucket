@@ -26,4 +26,6 @@
     <color name="needs_work_color">#f79232</color>
     <color name="white">#ffffff</color>
     <color name="approved_color">#14892c</color>
+    <color name="warning_red">#aacc0000</color>
+    <color name="warning_red_text">#ffcc0000</color>
 </resources>

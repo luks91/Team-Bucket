@@ -98,16 +98,25 @@ class ReviewersPresenter @Inject constructor(@AppContext private val context: Co
             : ReviewersInformation {
 
         val usersToPullRequests = teamMembers.associateBy({it}, {0}).toMutableMap()
+        val lazyReviewers = mutableSetOf<User>()
+
         pullRequests.forEach {
             it.reviewers
                     .filterNot { it.approved }
                     .filter { usersToPullRequests.contains(it.user) }
                     .forEach { usersToPullRequests[it.user] = usersToPullRequests[it.user]!! + 1 }
+
+            if (it.isLazilyReviewed()) {
+                it.reviewers
+                        .filter { it.status == UNAPPROVED }
+                        .forEach { lazyReviewers.add(it.user) }
+            }
+
         }
 
         val returnList = mutableListOf<Reviewer>()
         for ((key, value) in usersToPullRequests) {
-            returnList.add(Reviewer(user = key, reviewsCount = value))
+            returnList.add(Reviewer(user = key, reviewsCount = value, isLazy = lazyReviewers.contains(key)))
         }
 
         return ReviewersInformation(returnList.sortedWith(compareBy({ it.reviewsCount }, { it.user.displayName })), serverUrl)

@@ -85,6 +85,18 @@
             card_view:layout_constraintEnd_toEndOf="parent"
             card_view:layout_constraintStart_toEndOf="@+id/reviewerName"/>
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            card_view:srcCompat="@android:drawable/btn_star"
+            android:id="@+id/lazyReviewerWarning"
+            android:src="@drawable/ic_priority_high_24dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            card_view:layout_constraintStart_toEndOf="@+id/pullRequestsCount"
+            card_view:layout_constraintTop_toTopOf="@+id/pullRequestsCount"
+            card_view:layout_constraintBottom_toBottomOf="@+id/pullRequestsCount"/>
+
     </android.support.constraint.ConstraintLayout>
 
 </android.support.v7.widget.CardView>
