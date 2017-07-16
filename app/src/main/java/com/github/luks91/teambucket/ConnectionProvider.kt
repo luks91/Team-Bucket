@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.presenter
+package com.github.luks91.teambucket
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -23,29 +23,33 @@ import com.facebook.android.crypto.keychain.SharedPrefsBackedKeyChain
 import com.facebook.crypto.Crypto
 import com.facebook.crypto.CryptoConfig
 import com.facebook.crypto.Entity
+import com.github.luks91.teambucket.injection.AppContext
+import com.github.luks91.teambucket.injection.AppPreferences
 import com.github.luks91.teambucket.model.BitbucketConnection
 import com.github.luks91.teambucket.model.BitbucketCredentials
 import com.github.luks91.teambucket.util.ReactiveBus
 import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.Charset
+import javax.inject.Inject
 
-internal class ConnectionProvider(private val context: Context, private val prefs: SharedPreferences) {
+class ConnectionProvider @Inject constructor(@AppContext private val context: Context,
+                                             @AppPreferences private val preferences: SharedPreferences,
+                                             private val credentialsAdapter: JsonAdapter<BitbucketCredentials>,
+                                             private val eventsBus: ReactiveBus) {
 
     private val codingCharset = Charset.forName("UTF-8")
     private val credentialsEntity = "entity_"
     private val prefKey: String = "avatar_check_sum"
-    private val credentialsAdapter = Moshi.Builder().build().adapter<BitbucketCredentials>(BitbucketCredentials::class.java)!!
 
-    @SuppressLint("ApplySharedPref") //Committed on from a background thread.
+    @SuppressLint("ApplySharedPref") //Commit is executed on a background thread.
     fun obtainConnection(): Observable<BitbucketConnection> {
         return obtainSecurityCrypto().flatMap { crypto ->
             Observable.merge(
                     obtainDecryptedCredentials(crypto, credentialsAdapter),
-                    ReactiveBus.INSTANCE.receive(BitbucketCredentials::class.java)
-                            .doOnNext { data -> prefs.edit().putString(prefKey, encrypt(crypto, data)).commit() })
+                    eventsBus.receive(BitbucketCredentials::class.java)
+                            .doOnNext { data -> preferences.edit().putString(prefKey, encrypt(crypto, data)).commit() })
         }.map { credentials -> BitbucketConnection.from(credentials) }
     }
 
@@ -64,7 +68,7 @@ internal class ConnectionProvider(private val context: Context, private val pref
 
     private fun obtainDecryptedCredentials(crypto: Crypto, credentialsAdapter: JsonAdapter<BitbucketCredentials>)
             : Observable<BitbucketCredentials> {
-        val encryptedString = prefs.getString(prefKey, StringUtils.EMPTY)
+        val encryptedString = preferences.getString(prefKey, StringUtils.EMPTY)
         if (!encryptedString.isEmpty()) {
             val decodedBytes = crypto.decrypt(Base64.decode(encryptedString, Base64.DEFAULT), Entity.create(credentialsEntity))
             val credentials = credentialsAdapter.fromJson(decodedBytes.toString(codingCharset))
@@ -74,7 +78,7 @@ internal class ConnectionProvider(private val context: Context, private val pref
         }
 
         return Observable.empty<BitbucketCredentials>().doOnSubscribe {
-            ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
+            eventsBus.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
         }
     }
 }

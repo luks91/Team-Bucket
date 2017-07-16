@@ -75,8 +75,9 @@
             android:layout_marginEnd="@dimen/margin_8dp"/>
 
         <ImageView
-            android:layout_height="@dimen/author_avatar_size"
-            android:padding="@dimen/margin_16dp"
+            android:layout_height="0dp"
+            android:paddingStart="@dimen/margin_16dp"
+            android:paddingEnd="@dimen/margin_16dp"
             tools:src="@drawable/ic_launcher"
             android:contentDescription="@string/reviewer_avatar_content_desc"
             android:id="@+id/authorAvatar"
@@ -84,7 +85,8 @@
             card_view:layout_constraintStart_toStartOf="parent"
             android:layout_width="@dimen/author_avatar_size"
             android:foregroundGravity="center"
-            card_view:layout_constraintBottom_toBottomOf="parent"/>
+            card_view:layout_constraintBottom_toTopOf="@+id/pullRequestUpdateDate"
+            card_view:layout_constraintVertical_chainStyle="spread"/>
 
         <ImageView
             android:layout_width="@dimen/reviewer_avatar_size"
@@ -216,6 +218,18 @@
             card_view:layout_constraintTop_toBottomOf="@+id/reviewTitle"
             android:scaleType="fitXY"
             android:layout_marginEnd="@dimen/branch_target_arrow_margin"/>
+
+        <TextView
+            tools:text="Nov 13"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/pullRequestUpdateDate"
+            android:textColor="@color/warning_red_text"
+            card_view:layout_constraintTop_toBottomOf="@+id/authorAvatar"
+            card_view:layout_constraintStart_toStartOf="parent"
+            android:textSize="@dimen/pull_request_secondary_text_size"
+            card_view:layout_constraintEnd_toStartOf="@+id/reviewBranch"
+            card_view:layout_constraintBottom_toBottomOf="@+id/reviewBranch"/>
 
     </android.support.constraint.ConstraintLayout>
 </android.support.v7.widget.CardView>

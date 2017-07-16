@@ -11,23 +11,19 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.fragment
+package com.github.luks91.teambucket.injection
 
-import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import javax.inject.Scope
+import javax.inject.Qualifier
 
-class PullRequestsFragment : Fragment() {
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AppPreferences
 
-    companion object Factory {
-        fun newInstance() : PullRequestsFragment = PullRequestsFragment()
-    }
+@Scope
+@Retention(AnnotationRetention.RUNTIME)
+annotation class PerActivity
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_pull_requests, container, false)
-    }
-
-}
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AppContext

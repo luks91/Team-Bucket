@@ -96,23 +96,23 @@ interface BitbucketApi {
                     })
         }
 
-        fun <TData> handleNetworkError(sender: String): ((t: Throwable) -> Observable<TData>) {
+        fun <TData> handleNetworkError(eventsBus: ReactiveBus, sender: String): ((t: Throwable) -> Observable<TData>) {
             return { t: Throwable ->
                 when (t) {
                     is HttpException -> {
                         if (t.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                            ReactiveBus.INSTANCE.post(ReactiveBus.EventCredentialsInvalid(sender))
+                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender))
                             Observable.empty<TData>()
                         } else {
                             Observable.error(t)
                         }
                     }
                     is SocketException -> {
-                        ReactiveBus.INSTANCE.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
                         Observable.empty<TData>()
                     }
                     is UnknownHostException -> {
-                        ReactiveBus.INSTANCE.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
                         Observable.empty<TData>()
                     }
                     is InterruptedIOException -> {

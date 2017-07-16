@@ -13,8 +13,9 @@
 
 package com.github.luks91.teambucket.persistence
 
+import android.content.Context
 import android.os.HandlerThread
-import android.util.Log
+import com.github.luks91.teambucket.injection.AppContext
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.Repository
 import com.github.luks91.teambucket.model.User
@@ -24,13 +25,13 @@ import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Timed
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class PersistenceProvider(context: android.content.Context) {
+class PersistenceProvider @Inject constructor(@AppContext context: Context, private val eventsBus: ReactiveBus) {
 
     init {
         Realm.init(context)
@@ -52,7 +53,7 @@ class PersistenceProvider(context: android.content.Context) {
                     .map { realmList -> realmList.map { realmRepo -> realmRepo.toRepository() } }
                     .doOnNext { list ->
                         if (list.isEmpty()) {
-                            ReactiveBus.INSTANCE.post(
+                            eventsBus.post(
                                     ReactiveBus.EventRepositoriesMissing(PersistenceProvider::class.java.simpleName))
                         }
                     }.toObservable()
@@ -70,7 +71,7 @@ class PersistenceProvider(context: android.content.Context) {
 
     fun subscribeRepositoriesPersisting(): Disposable {
         return usingRealm { realm ->
-            ReactiveBus.INSTANCE.receive(ReactiveBus.EventRepositories::class.java)
+            eventsBus.receive(ReactiveBus.EventRepositories::class.java)
                     .observeOn(looperScheduler)
                     .map { (_, repositories) -> repositories.map { repository -> RealmRepository.Factory.from(repository) } }
                     .map { repositories -> realm.executeTransaction {

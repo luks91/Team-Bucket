@@ -11,23 +11,17 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.fragment
+package com.github.luks91.teambucket.injection
 
-import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import com.github.luks91.teambucket.presenter.MainPresenter
+import com.github.luks91.teambucket.presenter.ReviewersPresenter
+import dagger.Component
 
-class PullRequestsFragment : Fragment() {
+@PerActivity
+@Component(modules = arrayOf(FrontendModule::class), dependencies = arrayOf(ApplicationComponent::class))
+interface FrontendComponent {
 
-    companion object Factory {
-        fun newInstance() : PullRequestsFragment = PullRequestsFragment()
-    }
+    fun reviewersPresenter(): ReviewersPresenter
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_pull_requests, container, false)
-    }
-
+    fun mainPresenter(): MainPresenter
 }

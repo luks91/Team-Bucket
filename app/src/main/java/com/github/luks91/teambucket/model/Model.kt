@@ -22,8 +22,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.nio.charset.Charset
-
-
+import java.util.concurrent.TimeUnit
 
 val EMPTY_STRING = ""
 
@@ -88,7 +87,17 @@ data class PullRequest(@Json(name = "id") val id: Long,
                        @Json(name = "reviewers") val reviewers: List<PullRequestMember>,
                        @PullRequestStatus @Json(name = "state") val state: String,
                        @Json(name = "fromRef") val sourceBranch: GitReference,
-                       @Json(name = "toRef") val targetBranch: GitReference)
+                       @Json(name = "toRef") val targetBranch: GitReference) {
+
+    fun isLazilyReviewed(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        return if (TimeUnit.MILLISECONDS.toDays(updatedDate - createdDate) <= 3) {
+            TimeUnit.MILLISECONDS.toDays(currentTime - createdDate) >= 4
+        } else {
+            TimeUnit.MILLISECONDS.toDays(currentTime - updatedDate) >= 2
+        }
+    }
+}
 
 @Retention(AnnotationRetention.SOURCE)
 @StringDef(STATUS_OPEN, STATUS_MERGED, STATUS_ALL)
@@ -101,7 +110,7 @@ const val STATUS_ALL = "all"
 data class GitReference(@Json(name = "displayId") val displayId: String,
                         @Json(name = "latestCommit") val latestCommit: String)
 
-data class Reviewer(val user: User, val reviewsCount: Int)
+data class Reviewer(val user: User, val reviewsCount: Int, val isLazy: Boolean)
 data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String)
 
 data class PagedResponse<out T>(@Json(name = "size") val size: Int,

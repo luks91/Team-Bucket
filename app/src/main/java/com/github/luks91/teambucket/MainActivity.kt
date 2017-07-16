@@ -17,7 +17,6 @@ import android.os.Bundle
 import android.support.annotation.StringRes
 import android.support.design.widget.TabLayout
 import android.support.v4.view.ViewPager
-import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
 import com.github.luks91.teambucket.adapter.FragmentsPagerAdapter
@@ -25,16 +24,22 @@ import com.github.luks91.teambucket.presenter.MainPresenter
 import com.hannesdorfmann.mosby3.mvp.MvpActivity
 import io.reactivex.Observable
 import com.afollestad.materialdialogs.MaterialDialog
-import com.github.luks91.teambucket.model.*
-
+import com.github.luks91.teambucket.injection.DaggerFrontendComponent
+import com.github.luks91.teambucket.injection.FrontendComponent
+import com.github.luks91.teambucket.injection.FrontendModule
+import com.github.luks91.teambucket.model.BitbucketCredentials
 
 class MainActivity : MainView, MvpActivity<MainView, MainPresenter>() {
 
-    override fun createPresenter(): MainPresenter {
-        return MainPresenter(this)
-    }
+    private lateinit var frontendComponent: FrontendComponent
+
+    override fun createPresenter(): MainPresenter = frontendComponent.mainPresenter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        frontendComponent = DaggerFrontendComponent.builder()
+                .applicationComponent(TeamBucketApplication.getComponent(this))
+                .frontendModule(FrontendModule(this)).build()
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

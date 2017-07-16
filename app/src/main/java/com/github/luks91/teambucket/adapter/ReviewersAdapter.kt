@@ -23,7 +23,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.model.*
+import com.github.luks91.teambucket.model.Reviewer
+import com.github.luks91.teambucket.model.PullRequest
+import com.github.luks91.teambucket.model.PullRequestMember
+import com.github.luks91.teambucket.model.APPROVED
+import com.github.luks91.teambucket.model.NEEDS_WORK
+import com.github.luks91.teambucket.model.ReviewersInformation
+import com.github.luks91.teambucket.model.User
+import com.github.luks91.teambucket.util.toMMMddDateString
 import com.squareup.picasso.Target
 import org.apache.commons.lang3.StringUtils
 
@@ -47,6 +54,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
         private val pullRequestsCount: TextView = itemView.findViewById(R.id.pullRequestsCount) as TextView
         private val reviewerAvatar: ImageView = itemView.findViewById(R.id.reviewerAvatar) as ImageView
         private val expandArrow: View = itemView.findViewById(R.id.expandReviewerInfo)
+        private val lazyReviewerWarning: View = itemView.findViewById(R.id.lazyReviewerWarning)
 
         fun fillIn(reviewer: Reviewer, fillIndex: Int) {
             this.reviewerName.text = reviewer.user.displayName
@@ -85,9 +93,8 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                 }
             }
 
-            val viewTarget = ImageViewTarget(reviewerAvatar)
-            reviewerAvatar.tag = viewTarget //Picasso holds a WeakReference to the target, we need to strongly hold it here
-            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, viewTarget)
+            lazyReviewerWarning.visibility = if (reviewer.isLazy) View.VISIBLE else View.GONE
+            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, ImageViewTarget(reviewerAvatar))
         }
 
         fun updateItemSelection(reviewer: Reviewer, selectedReviewer: Reviewer) {
@@ -100,6 +107,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     inner class PullRequestViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val authorName: TextView by lazy { itemView.findViewById(R.id.reviewAuthor) as TextView }
         private val authorAvatar: ImageView by lazy { itemView.findViewById(R.id.authorAvatar) as ImageView }
+        private val pullRequestUpdateDate: TextView by lazy {itemView.findViewById(R.id.pullRequestUpdateDate) as TextView }
 
         private val reviewers: Array<Pair<ImageView, ImageView>> by lazy {
             arrayOf(
@@ -141,6 +149,10 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                     reviewerState.visibility = View.GONE
                 }
             }
+
+            pullRequestUpdateDate.text = pullRequest.updatedDate.toMMMddDateString()
+            pullRequestUpdateDate.setTextColor(if (pullRequest.isLazilyReviewed()) context.getColor(R.color.warning_red_text)
+                else context.getColor(R.color.secondary_text))
         }
 
         private @DrawableRes fun resourceFromReviewerState(member: PullRequestMember): Int {

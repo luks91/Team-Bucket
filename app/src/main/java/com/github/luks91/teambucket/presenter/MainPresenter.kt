@@ -13,7 +13,7 @@
 
 package com.github.luks91.teambucket.presenter
 
-import android.content.Context
+import com.github.luks91.teambucket.ConnectionProvider
 import com.github.luks91.teambucket.MainView
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.*
@@ -28,12 +28,11 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class MainPresenter(context: Context) : MvpPresenter<MainView> {
-
-    private val connectionProvider: ConnectionProvider =
-            ConnectionProvider(context, context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE))
-    private val persistenceProvider: PersistenceProvider = PersistenceProvider(context)
+class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider,
+                                        val persistenceProvider: PersistenceProvider,
+                                        val eventsBus: ReactiveBus) : MvpPresenter<MainView> {
 
     private var disposable = Disposables.empty()
 
@@ -46,16 +45,16 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                 }.publish().refCount()
 
         disposable = CompositeDisposable(
-                ReactiveBus.INSTANCE.receive(ReactiveBus.EventCredentialsInvalid::class.java)
+                eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
                         .observeOn(AndroidSchedulers.mainThread())
                         .flatMap { requestUserCredentialsObservable }
-                        .subscribe { credentials -> ReactiveBus.INSTANCE.post(credentials) },
+                        .subscribe { credentials -> eventsBus.post(credentials) },
                 persistenceProvider.subscribeRepositoriesPersisting(),
-                ReactiveBus.INSTANCE.receive(ReactiveBus.EventRepositoriesMissing::class.java)
+                eventsBus.receive(ReactiveBus.EventRepositoriesMissing::class.java)
                         .switchMap { requestRepositoriesSelection }
-                        .subscribe({ repositories -> ReactiveBus.INSTANCE.post(ReactiveBus.EventRepositories(
+                        .subscribe({ repositories -> eventsBus.post(ReactiveBus.EventRepositories(
                                 MainPresenter::class.java.simpleName, repositories)) }),
-                ReactiveBus.INSTANCE.receive(ReactiveBus.EventNoNetworkConnection::class.java)
+                eventsBus.receive(ReactiveBus.EventNoNetworkConnection::class.java)
                         .debounce(100, TimeUnit.MILLISECONDS)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { _ -> view.showNoNetworkNotification() }
@@ -67,7 +66,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                         BitbucketApi.queryPaged { start -> api.getProjects(token, start) }
                                 .subscribeOn(Schedulers.io())
                     }
-                    .onErrorResumeNext(BitbucketApi.handleNetworkError(MainPresenter::class.java.simpleName))
+                    .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus, MainPresenter::class.java.simpleName))
                     .reduce { t1, t2 -> t1 + t2 }.toObservable()
                     .concatMap { projects -> requestUserToSelect(projects, view, { data -> data.name }) }
                     .concatMapIterable { list -> list }
@@ -95,7 +94,7 @@ class MainPresenter(context: Context) : MvpPresenter<MainView> {
                         BitbucketApi.queryPaged { start -> api.getProjectRepositories(token, key, start) }
                                 .subscribeOn(Schedulers.io())
                     }
-                    .onErrorResumeNext(BitbucketApi.handleNetworkError(MainPresenter::class.java.simpleName))
+                    .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus, MainPresenter::class.java.simpleName))
                 }
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .map { repositories -> repositories.sortedBy { repository -> repository.name.toLowerCase() } }

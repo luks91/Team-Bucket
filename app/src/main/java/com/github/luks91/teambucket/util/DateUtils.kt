@@ -11,23 +11,11 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.fragment
+package com.github.luks91.teambucket.util
 
-import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-class PullRequestsFragment : Fragment() {
-
-    companion object Factory {
-        fun newInstance() : PullRequestsFragment = PullRequestsFragment()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_pull_requests, container, false)
-    }
-
+fun Long.toMMMddDateString(): String {
+    return SimpleDateFormat("MMM dd", Locale.getDefault()).format(this)
 }
