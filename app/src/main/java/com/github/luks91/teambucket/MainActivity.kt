@@ -31,15 +31,15 @@ import com.github.luks91.teambucket.model.BitbucketCredentials
 
 class MainActivity : MainView, MvpActivity<MainView, MainPresenter>() {
 
-    private lateinit var frontendComponent: FrontendComponent
+    private val frontendComponent: FrontendComponent by lazy {
+        DaggerFrontendComponent.builder()
+                .applicationComponent(TeamBucketApplication.getComponent(this))
+                .frontendModule(FrontendModule(this)).build()
+    }
 
     override fun createPresenter(): MainPresenter = frontendComponent.mainPresenter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        frontendComponent = DaggerFrontendComponent.builder()
-                .applicationComponent(TeamBucketApplication.getComponent(this))
-                .frontendModule(FrontendModule(this)).build()
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

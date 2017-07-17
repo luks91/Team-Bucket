@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket.fragment
 
-import android.content.Context
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
@@ -45,22 +44,17 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
     private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
     private val layoutManager: LinearLayoutManager by lazy { LinearLayoutManager(context) }
     private val dataAdapter: ReviewersAdapter by lazy { ReviewersAdapter(context, this, layoutManager) }
-    private lateinit var frontendComponent: FrontendComponent
+    private val frontendComponent: FrontendComponent by lazy {
+        DaggerFrontendComponent.builder()
+                .applicationComponent(TeamBucketApplication.getComponent(context))
+                .frontendModule(FrontendModule(context)).build()
+    }
 
     companion object Factory {
         fun newInstance() : ReviewersFragment = ReviewersFragment()
     }
 
-    override fun createPresenter(): ReviewersPresenter {
-        return frontendComponent.reviewersPresenter()
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        frontendComponent = DaggerFrontendComponent.builder()
-                .applicationComponent(TeamBucketApplication.getComponent(context))
-                .frontendModule(FrontendModule(context)).build()
-    }
+    override fun createPresenter(): ReviewersPresenter = frontendComponent.reviewersPresenter()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater!!.inflate(R.layout.fragment_reviewers, container, false)
