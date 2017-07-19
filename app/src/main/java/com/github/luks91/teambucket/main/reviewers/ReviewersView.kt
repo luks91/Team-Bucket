@@ -11,15 +11,22 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket
+package com.github.luks91.teambucket.main.reviewers
 
-import android.support.annotation.StringRes
-import com.github.luks91.teambucket.model.*
+import com.github.luks91.teambucket.model.ImageLoadRequest
+import com.github.luks91.teambucket.model.PullRequest
+import com.github.luks91.teambucket.model.ReviewersInformation
+import com.github.luks91.teambucket.model.User
 import com.hannesdorfmann.mosby3.mvp.MvpView
 import io.reactivex.Observable
 
-interface MainView : MvpView {
-    fun requestUserCredentials() : Observable<BitbucketCredentials>
-    fun showNoNetworkNotification()
-    fun requestToSelectFrom(@StringRes titleRes: Int, projects: List<String>): Observable<List<Int>>
+interface ReviewersView : MvpView {
+
+    fun onReviewersReceived(reviewers: ReviewersInformation)
+    fun onLoadingCompleted()
+    fun onSelfLoadingStarted()
+    fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>)
+    fun intentPullToRefresh(): Observable<Any>
+    fun intentRetrieveReviews(): Observable<IndexedValue<User>>
+    fun intentLoadAvatarImage(): Observable<ImageLoadRequest>
 }

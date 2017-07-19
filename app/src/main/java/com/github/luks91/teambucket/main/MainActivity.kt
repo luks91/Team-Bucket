@@ -11,35 +11,46 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket
+package com.github.luks91.teambucket.main
 
 import android.os.Bundle
 import android.support.annotation.StringRes
 import android.support.design.widget.TabLayout
+import android.support.v4.app.Fragment
 import android.support.v4.view.ViewPager
 import android.widget.EditText
 import android.widget.Toast
-import com.github.luks91.teambucket.adapter.FragmentsPagerAdapter
-import com.github.luks91.teambucket.presenter.MainPresenter
 import com.hannesdorfmann.mosby3.mvp.MvpActivity
 import io.reactivex.Observable
 import com.afollestad.materialdialogs.MaterialDialog
-import com.github.luks91.teambucket.injection.DaggerFrontendComponent
-import com.github.luks91.teambucket.injection.FrontendComponent
-import com.github.luks91.teambucket.injection.FrontendModule
+import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.BitbucketCredentials
+import dagger.android.AndroidInjection
+import dagger.android.support.HasSupportFragmentInjector
+import javax.inject.Inject
+import dagger.android.DispatchingAndroidInjector
+import dagger.android.AndroidInjector
 
-class MainActivity : MainView, MvpActivity<MainView, MainPresenter>() {
 
-    private val frontendComponent: FrontendComponent by lazy {
-        DaggerFrontendComponent.builder()
-                .applicationComponent(TeamBucketApplication.getComponent(this))
-                .frontendModule(FrontendModule(this)).build()
+
+
+
+class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSupportFragmentInjector {
+
+    @Inject
+    lateinit var fragmentDispatchingAndroidInjector: DispatchingAndroidInjector<Fragment>
+
+    @Inject
+    lateinit var mainPresenter: MainPresenter
+
+    override fun createPresenter(): MainPresenter = mainPresenter
+
+    override fun supportFragmentInjector(): AndroidInjector<Fragment> {
+        return fragmentDispatchingAndroidInjector
     }
 
-    override fun createPresenter(): MainPresenter = frontendComponent.mainPresenter()
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

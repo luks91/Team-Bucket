@@ -11,10 +11,10 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.rest
+package com.github.luks91.teambucket.connection
 
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
 import io.reactivex.Emitter
 import io.reactivex.Observable
 import io.reactivex.functions.BiConsumer

@@ -11,23 +11,23 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.fragment
+package com.github.luks91.teambucket.main
 
-import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
+import com.github.luks91.teambucket.main.reviewers.ReviewersFragmentComponent
+import dagger.android.AndroidInjector
+import dagger.multibindings.IntoMap
+import dagger.Binds
+import dagger.Module
+import dagger.android.support.FragmentKey
 
-class StatisticsFragment : Fragment(){
+@Module
+abstract class MainFragmentsProvider {
 
-    companion object Factory {
-        fun newInstance() : StatisticsFragment = StatisticsFragment()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_statistics, container, false)
-    }
-
+    @Binds
+    @IntoMap
+    @FragmentKey(ReviewersFragment::class)
+    internal abstract fun provideReviewersFragmentFactory(builder: ReviewersFragmentComponent.Builder):
+            AndroidInjector.Factory<out Fragment>
 }

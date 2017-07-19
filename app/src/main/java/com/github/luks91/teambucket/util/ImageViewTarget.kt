@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.adapter
+package com.github.luks91.teambucket.util
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable

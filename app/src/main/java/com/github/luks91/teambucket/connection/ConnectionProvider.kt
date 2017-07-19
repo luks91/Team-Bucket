@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket
+package com.github.luks91.teambucket.connection
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -23,11 +23,11 @@ import com.facebook.android.crypto.keychain.SharedPrefsBackedKeyChain
 import com.facebook.crypto.Crypto
 import com.facebook.crypto.CryptoConfig
 import com.facebook.crypto.Entity
-import com.github.luks91.teambucket.injection.AppContext
-import com.github.luks91.teambucket.injection.AppPreferences
+import com.github.luks91.teambucket.di.AppContext
+import com.github.luks91.teambucket.di.AppPreferences
 import com.github.luks91.teambucket.model.BitbucketConnection
 import com.github.luks91.teambucket.model.BitbucketCredentials
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
 import com.squareup.moshi.JsonAdapter
 import io.reactivex.Observable
 import org.apache.commons.lang3.StringUtils

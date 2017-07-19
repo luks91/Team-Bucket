@@ -11,16 +11,16 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.adapter
+package com.github.luks91.teambucket.main
 
 import android.content.res.Resources
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.fragment.PullRequestsFragment
-import com.github.luks91.teambucket.fragment.ReviewersFragment
-import com.github.luks91.teambucket.fragment.StatisticsFragment
+import com.github.luks91.teambucket.main.pullrequests.PullRequestsFragment
+import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
+import com.github.luks91.teambucket.main.statistics.StatisticsFragment
 
 class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Resources)
     : FragmentStatePagerAdapter(fragmentManager) {

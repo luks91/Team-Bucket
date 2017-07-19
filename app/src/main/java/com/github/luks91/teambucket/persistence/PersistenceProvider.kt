@@ -15,11 +15,11 @@ package com.github.luks91.teambucket.persistence
 
 import android.content.Context
 import android.os.HandlerThread
-import com.github.luks91.teambucket.injection.AppContext
+import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.Repository
 import com.github.luks91.teambucket.model.User
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Scheduler

@@ -11,21 +11,20 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.presenter
+package com.github.luks91.teambucket.main.reviewers
 
 import android.content.Context
 import android.net.Uri
 import android.webkit.URLUtil
-import com.github.luks91.teambucket.ConnectionProvider
+import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.ReviewersView
 import com.github.luks91.teambucket.TeamMembersProvider
-import com.github.luks91.teambucket.injection.AppContext
+import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
-import com.github.luks91.teambucket.rest.BitbucketApi
+import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
 import io.reactivex.Observable

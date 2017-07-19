@@ -11,36 +11,38 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.injection
+package com.github.luks91.teambucket.di
 
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import com.github.luks91.teambucket.ConnectionProvider
+import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.model.BitbucketCredentials
 import com.github.luks91.teambucket.persistence.PersistenceProvider
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.main.MainActivityComponent
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
-@Module
-class ApplicationModule(val context: Context) {
+@Module(subcomponents = arrayOf(MainActivityComponent::class))
+class ApplicationModule {
 
     @Provides
     @Singleton
     @AppContext
-    fun provideAppContext(): Context {
-        return context
+    fun provideAppContext(application: Application): Context {
+        return application
     }
 
     @Provides
     @Singleton
     @AppPreferences
-    fun provideAppPreferences(): SharedPreferences {
-        return context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    fun provideAppPreferences(application: Application): SharedPreferences {
+        return application.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     }
 
     @Provides

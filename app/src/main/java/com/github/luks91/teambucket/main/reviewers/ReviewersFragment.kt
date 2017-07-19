@@ -11,31 +11,27 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.fragment
+package com.github.luks91.teambucket.main.reviewers
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.ReviewersView
-import com.github.luks91.teambucket.presenter.ReviewersPresenter
 import com.hannesdorfmann.mosby3.mvp.MvpFragment
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import com.github.luks91.teambucket.TeamBucketApplication
-import com.github.luks91.teambucket.adapter.ReviewersAdapter
-import com.github.luks91.teambucket.injection.DaggerFrontendComponent
-import com.github.luks91.teambucket.injection.FrontendComponent
-import com.github.luks91.teambucket.injection.FrontendModule
 import com.github.luks91.teambucket.model.ImageLoadRequest
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.ReviewersInformation
 import com.github.luks91.teambucket.model.User
 import com.squareup.picasso.Target
+import dagger.android.support.AndroidSupportInjection
+import javax.inject.Inject
 
 class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), ReviewersView, ReviewersAdapter.Callback {
 
@@ -44,17 +40,20 @@ class ReviewersFragment : MvpFragment<ReviewersView, ReviewersPresenter>(), Revi
     private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
     private val layoutManager: LinearLayoutManager by lazy { LinearLayoutManager(context) }
     private val dataAdapter: ReviewersAdapter by lazy { ReviewersAdapter(context, this, layoutManager) }
-    private val frontendComponent: FrontendComponent by lazy {
-        DaggerFrontendComponent.builder()
-                .applicationComponent(TeamBucketApplication.getComponent(context))
-                .frontendModule(FrontendModule(context)).build()
-    }
+
+    @Inject
+    lateinit var reviewersPresenter: ReviewersPresenter
 
     companion object Factory {
         fun newInstance() : ReviewersFragment = ReviewersFragment()
     }
 
-    override fun createPresenter(): ReviewersPresenter = frontendComponent.reviewersPresenter()
+    override fun createPresenter(): ReviewersPresenter = reviewersPresenter
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        AndroidSupportInjection.inject(this)
+    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater!!.inflate(R.layout.fragment_reviewers, container, false)

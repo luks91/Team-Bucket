@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.util
+package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.Repository
 import com.jakewharton.rxrelay2.PublishRelay

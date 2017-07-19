@@ -11,19 +11,15 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.injection
+package com.github.luks91.teambucket.main
 
-import javax.inject.Scope
-import javax.inject.Qualifier
+import android.support.annotation.StringRes
+import com.github.luks91.teambucket.model.*
+import com.hannesdorfmann.mosby3.mvp.MvpView
+import io.reactivex.Observable
 
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class AppPreferences
-
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class PerActivity
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class AppContext
+interface MainView : com.hannesdorfmann.mosby3.mvp.MvpView {
+    fun requestUserCredentials() : io.reactivex.Observable<BitbucketCredentials>
+    fun showNoNetworkNotification()
+    fun requestToSelectFrom(@android.support.annotation.StringRes titleRes: Int, projects: List<String>): io.reactivex.Observable<List<Int>>
+}

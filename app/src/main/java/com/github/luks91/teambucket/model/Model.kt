@@ -15,7 +15,7 @@ package com.github.luks91.teambucket.model
 
 import android.support.annotation.StringDef
 import android.util.Base64
-import com.github.luks91.teambucket.rest.BitbucketApi
+import com.github.luks91.teambucket.connection.BitbucketApi
 import com.squareup.moshi.Json
 import com.squareup.picasso.Target
 import retrofit2.Retrofit

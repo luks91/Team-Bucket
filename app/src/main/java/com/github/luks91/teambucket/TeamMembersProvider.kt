@@ -15,9 +15,9 @@ package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
-import com.github.luks91.teambucket.presenter.ReviewersPresenter
-import com.github.luks91.teambucket.rest.BitbucketApi
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
+import com.github.luks91.teambucket.connection.BitbucketApi
+import com.github.luks91.teambucket.connection.ConnectionProvider
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction

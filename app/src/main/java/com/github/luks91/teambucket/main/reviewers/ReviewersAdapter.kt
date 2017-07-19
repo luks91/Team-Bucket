@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.adapter
+package com.github.luks91.teambucket.main.reviewers
 
 import android.content.Context
 import android.support.annotation.DrawableRes
@@ -23,6 +23,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.github.luks91.teambucket.R
+import com.github.luks91.teambucket.util.ImageViewTarget
 import com.github.luks91.teambucket.model.Reviewer
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.PullRequestMember

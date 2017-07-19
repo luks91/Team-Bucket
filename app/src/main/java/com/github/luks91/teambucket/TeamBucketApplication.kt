@@ -13,23 +13,25 @@
 
 package com.github.luks91.teambucket
 
-import android.content.Context
+import com.github.luks91.teambucket.di.DaggerApplicationComponent
+import dagger.android.HasActivityInjector
+import android.app.Activity
+import dagger.android.AndroidInjector
+import dagger.android.DispatchingAndroidInjector
+import javax.inject.Inject
 
-import com.github.luks91.teambucket.injection.ApplicationComponent
-import com.github.luks91.teambucket.injection.ApplicationModule
-import com.github.luks91.teambucket.injection.DaggerApplicationComponent
+class TeamBucketApplication : android.app.Application(), HasActivityInjector {
 
-class TeamBucketApplication : android.app.Application() {
-    private lateinit var component: ApplicationComponent
-
+    @Inject
+    lateinit var activityDispatchingAndroidInjector: DispatchingAndroidInjector<Activity>
     override fun onCreate() {
         super.onCreate()
-        component = DaggerApplicationComponent.builder()
-                .applicationModule(ApplicationModule(this))
-                .build()
+        DaggerApplicationComponent.builder()
+                .application(this)
+                .build().inject(this)
     }
 
-    companion object {
-        fun getComponent(c: Context) = (c.applicationContext as TeamBucketApplication).component
+    override fun activityInjector(): AndroidInjector<Activity> {
+        return activityDispatchingAndroidInjector
     }
 }

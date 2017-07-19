@@ -11,17 +11,24 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.injection
+package com.github.luks91.teambucket.di
 
-import com.github.luks91.teambucket.presenter.MainPresenter
-import com.github.luks91.teambucket.presenter.ReviewersPresenter
+import android.app.Application
+import com.github.luks91.teambucket.TeamBucketApplication
 import dagger.Component
+import dagger.BindsInstance
+import dagger.android.AndroidInjectionModule
+import javax.inject.Singleton
 
-@PerActivity
-@Component(modules = arrayOf(FrontendModule::class), dependencies = arrayOf(ApplicationComponent::class))
-interface FrontendComponent {
+@Component(modules = arrayOf(AndroidInjectionModule::class, ApplicationModule::class, ActivityBuilder::class))
+@Singleton
+interface ApplicationComponent {
 
-    fun reviewersPresenter(): ReviewersPresenter
+    @Component.Builder
+    interface Builder {
+        @BindsInstance fun application(application: Application): Builder
+        fun build(): ApplicationComponent
+    }
 
-    fun mainPresenter(): MainPresenter
+    fun inject(app: TeamBucketApplication)
 }
