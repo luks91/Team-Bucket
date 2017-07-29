@@ -31,6 +31,7 @@ import com.github.luks91.teambucket.model.APPROVED
 import com.github.luks91.teambucket.model.NEEDS_WORK
 import com.github.luks91.teambucket.model.ReviewersInformation
 import com.github.luks91.teambucket.model.User
+import com.github.luks91.teambucket.util.childImageView
 import com.github.luks91.teambucket.util.toMMMddDateString
 import com.squareup.picasso.Target
 import org.apache.commons.lang3.StringUtils
@@ -111,15 +112,10 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
         private val pullRequestUpdateDate: TextView by lazy {itemView.findViewById(R.id.pullRequestUpdateDate) as TextView }
 
         private val reviewers: Array<Pair<ImageView, ImageView>> by lazy {
-            arrayOf(
-                    Pair(itemView.findViewById(R.id.firstReviewer) as ImageView,
-                            itemView.findViewById(R.id.firstReviewerState) as ImageView),
-                    Pair(itemView.findViewById(R.id.secondReviewer) as ImageView,
-                            itemView.findViewById(R.id.secondReviewerState) as ImageView),
-                    Pair(itemView.findViewById(R.id.thirdReviewer) as ImageView,
-                            itemView.findViewById(R.id.thirdReviewerState) as ImageView),
-                    Pair(itemView.findViewById(R.id.fourthReviewer) as ImageView,
-                            itemView.findViewById(R.id.fourthReviewerState) as ImageView))
+            arrayOf(itemView.childImageView(R.id.firstReviewer) to itemView.childImageView(R.id.firstReviewerState),
+                    itemView.childImageView(R.id.secondReviewer) to itemView.childImageView(R.id.secondReviewerState),
+                    itemView.childImageView(R.id.thirdReviewer) to itemView.childImageView(R.id.thirdReviewerState),
+                    itemView.childImageView(R.id.fourthReviewer) to itemView.childImageView(R.id.fourthReviewerState))
         }
 
         private val reviewTitle: TextView by lazy { itemView.findViewById(R.id.reviewTitle) as TextView }
@@ -136,18 +132,19 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
 
             val pullRequestReviewers = pullRequest.reviewers
             for ((index, reviewViews) in reviewers.withIndex()) {
-                val reviewerAvatar = reviewViews.first
-                val reviewerState = reviewViews.second
                 if (pullRequestReviewers.size > index) {
                     val pullRequestMember = pullRequestReviewers[index]
-                    callback.loadImageFor(serverUrl, pullRequestMember.user.avatarUrlSuffix,
-                            ImageViewTarget(reviewerAvatar))
-                    reviewerAvatar.visibility = View.VISIBLE
-                    reviewerState.visibility = View.VISIBLE
-                    reviewerState.setImageResource(resourceFromReviewerState(pullRequestMember))
+                    reviewViews.apply {
+                        callback.loadImageFor(serverUrl, pullRequestMember.user.avatarUrlSuffix, ImageViewTarget(first))
+                        first.visibility = View.VISIBLE
+                        second.visibility = View.VISIBLE
+                        second.setImageResource(resourceFromReviewerState(pullRequestMember))
+                    }
                 } else {
-                    reviewerAvatar.visibility = View.GONE
-                    reviewerState.visibility = View.GONE
+                    reviewViews.apply {
+                        first.visibility = View.GONE
+                        second.visibility = View.GONE
+                    }
                 }
             }
 
@@ -204,8 +201,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
             for (payload in payloads) {
                 if (payload is Reviewer && holder is DataViewHolder) {
                     holder.updateItemSelection(
-                            reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size],
-                            payload)
+                            reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], payload)
                 }
             }
         } else {

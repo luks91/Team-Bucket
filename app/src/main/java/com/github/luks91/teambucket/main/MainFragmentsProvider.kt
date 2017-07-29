@@ -14,8 +14,10 @@
 package com.github.luks91.teambucket.main
 
 import android.support.v4.app.Fragment
+import com.github.luks91.teambucket.main.home.HomeComponent
+import com.github.luks91.teambucket.main.home.HomeFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
-import com.github.luks91.teambucket.main.reviewers.ReviewersFragmentComponent
+import com.github.luks91.teambucket.main.reviewers.ReviewersComponent
 import dagger.android.AndroidInjector
 import dagger.multibindings.IntoMap
 import dagger.Binds
@@ -27,7 +29,13 @@ abstract class MainFragmentsProvider {
 
     @Binds
     @IntoMap
+    @FragmentKey(HomeFragment::class)
+    internal abstract fun provideHomeFragmentFactory(builder: HomeComponent.Builder):
+            AndroidInjector.Factory<out Fragment>
+
+    @Binds
+    @IntoMap
     @FragmentKey(ReviewersFragment::class)
-    internal abstract fun provideReviewersFragmentFactory(builder: ReviewersFragmentComponent.Builder):
+    internal abstract fun provideReviewersFragmentFactory(builder: ReviewersComponent.Builder):
             AndroidInjector.Factory<out Fragment>
 }

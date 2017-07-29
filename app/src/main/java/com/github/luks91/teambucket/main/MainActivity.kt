@@ -25,15 +25,12 @@ import io.reactivex.Observable
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.BitbucketCredentials
+import com.github.luks91.teambucket.util.stringText
 import dagger.android.AndroidInjection
 import dagger.android.support.HasSupportFragmentInjector
 import javax.inject.Inject
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.AndroidInjector
-
-
-
-
 
 class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSupportFragmentInjector {
 
@@ -42,6 +39,9 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
 
     @Inject
     lateinit var mainPresenter: MainPresenter
+
+    @Inject
+    lateinit var fragmentsPagerAdapter: FragmentsPagerAdapter
 
     override fun createPresenter(): MainPresenter = mainPresenter
 
@@ -54,11 +54,12 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val viewPager = findViewById(R.id.viewpager) as ViewPager
-        viewPager.adapter = FragmentsPagerAdapter(supportFragmentManager, resources)
+        (findViewById(R.id.viewpager) as ViewPager).apply {
+            adapter = fragmentsPagerAdapter
+            val tabLayout = this@MainActivity.findViewById(R.id.tabs) as TabLayout
+            tabLayout.setupWithViewPager(this)
 
-        val tabLayout = findViewById(R.id.tabs) as TabLayout
-        tabLayout.setupWithViewPager(viewPager)
+        }
     }
 
     override fun requestUserCredentials(): Observable<BitbucketCredentials> {
@@ -70,15 +71,17 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
                     .positiveText(R.string.confirm)
                     .cancelListener { emitter.onComplete() }
                     .onPositive { dialog, _ ->
-                        val customView = dialog.customView!!
-                        val usernameField = customView.findViewById(R.id.username) as EditText
-                        val passwordField = customView.findViewById(R.id.password) as EditText
-                        val serverUrl = customView.findViewById(R.id.bitbucketUrl) as EditText
-                        emitter.onNext(BitbucketCredentials(
-                                serverUrl.text.toString(),
-                                usernameField.text.toString(),
-                                passwordField.text.toString()))
-                        emitter.onComplete()
+                        dialog.customView!!.apply {
+                            val usernameField = this@apply.findViewById(R.id.username) as EditText
+                            val passwordField = this@apply.findViewById(R.id.password) as EditText
+                            val serverUrl = this@apply.findViewById(R.id.bitbucketUrl) as EditText
+                            emitter.apply {
+                                onNext(BitbucketCredentials(serverUrl.stringText(),
+                                        usernameField.stringText(),
+                                        passwordField.stringText()))
+                                onComplete()
+                            }
+                        }
                     }
                     .show()
 

@@ -28,6 +28,8 @@ import com.github.luks91.teambucket.di.AppPreferences
 import com.github.luks91.teambucket.model.BitbucketConnection
 import com.github.luks91.teambucket.model.BitbucketCredentials
 import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.util.edit
+import com.github.luks91.teambucket.util.put
 import com.squareup.moshi.JsonAdapter
 import io.reactivex.Observable
 import org.apache.commons.lang3.StringUtils
@@ -49,7 +51,8 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
             Observable.merge(
                     obtainDecryptedCredentials(crypto, credentialsAdapter),
                     eventsBus.receive(BitbucketCredentials::class.java)
-                            .doOnNext { data -> preferences.edit().putString(prefKey, encrypt(crypto, data)).commit() })
+                            .doOnNext { data -> preferences.edit { put(prefKey to encrypt(crypto, data)) }
+                    })
         }.map { credentials -> BitbucketConnection.from(credentials) }
     }
 

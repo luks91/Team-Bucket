@@ -13,20 +13,12 @@
 
 package com.github.luks91.teambucket.main.reviewers
 
-import com.github.luks91.teambucket.model.ImageLoadRequest
+import com.github.luks91.teambucket.main.base.BasePullRequestsView
 import com.github.luks91.teambucket.model.PullRequest
-import com.github.luks91.teambucket.model.ReviewersInformation
 import com.github.luks91.teambucket.model.User
-import com.hannesdorfmann.mosby3.mvp.MvpView
 import io.reactivex.Observable
 
-interface ReviewersView : MvpView {
-
-    fun onReviewersReceived(reviewers: ReviewersInformation)
-    fun onLoadingCompleted()
-    fun onSelfLoadingStarted()
-    fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>)
-    fun intentPullToRefresh(): Observable<Any>
+interface ReviewersView : BasePullRequestsView {
     fun intentRetrieveReviews(): Observable<IndexedValue<User>>
-    fun intentLoadAvatarImage(): Observable<ImageLoadRequest>
+    fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>)
 }

@@ -11,7 +11,7 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.main.reviewers
+package com.github.luks91.teambucket.main.home
 
 import android.content.Context
 import com.github.luks91.teambucket.ReactiveBus
@@ -23,17 +23,17 @@ import dagger.Module
 import dagger.Provides
 
 @Module
-class ReviewersFragmentModule {
+class HomeModule {
 
     @Provides
-    internal fun provideReviewersFragmentView(reviewersFragment: ReviewersFragment): ReviewersView {
-        return reviewersFragment
+    internal fun provideHomeFragmentView(homeFragment: HomeFragment): HomeView {
+        return homeFragment
     }
 
     @Provides
-    internal fun providesReviewersPresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
+    internal fun provideHomePresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
                                             persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider,
-                                            eventBus: ReactiveBus): ReviewersPresenter {
-        return ReviewersPresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus)
+                                            eventBus: ReactiveBus): HomePresenter {
+        return HomePresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus)
     }
 }

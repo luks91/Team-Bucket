@@ -11,12 +11,12 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.main
+package com.github.luks91.teambucket.main.home
 
-import com.github.luks91.teambucket.model.*
+import com.github.luks91.teambucket.main.base.BasePullRequestsView
+import com.github.luks91.teambucket.model.User
+import io.reactivex.Observable
 
-interface MainView : com.hannesdorfmann.mosby3.mvp.MvpView {
-    fun requestUserCredentials() : io.reactivex.Observable<BitbucketCredentials>
-    fun showNoNetworkNotification()
-    fun requestToSelectFrom(@android.support.annotation.StringRes titleRes: Int, projects: List<String>): io.reactivex.Observable<List<Int>>
+interface HomeView: BasePullRequestsView {
+    fun intentShowReviewerPullRequests(): Observable<User>
 }

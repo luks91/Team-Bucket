@@ -18,6 +18,7 @@ import android.util.Base64
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.squareup.moshi.Json
 import com.squareup.picasso.Target
+import org.apache.commons.lang3.StringUtils
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -111,7 +112,11 @@ data class GitReference(@Json(name = "displayId") val displayId: String,
                         @Json(name = "latestCommit") val latestCommit: String)
 
 data class Reviewer(val user: User, val reviewsCount: Int, val isLazy: Boolean)
-data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String)
+data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String) {
+    companion object {
+        val EMPTY = ReviewersInformation(listOf(), StringUtils.EMPTY)
+    }
+}
 
 data class PagedResponse<out T>(@Json(name = "size") val size: Int,
                                 @Json(name = "limit") val limit: Int,

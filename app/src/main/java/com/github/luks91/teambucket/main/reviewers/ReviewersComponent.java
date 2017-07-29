@@ -11,23 +11,15 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.main.pullrequests
+package com.github.luks91.teambucket.main.reviewers;
 
-import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import dagger.Subcomponent;
+import dagger.android.AndroidInjector;
 
-class PullRequestsFragment : Fragment() {
+@Subcomponent()
+public interface ReviewersComponent extends AndroidInjector<ReviewersFragment> {
 
-    companion object Factory {
-        fun newInstance() : PullRequestsFragment = PullRequestsFragment()
+    @Subcomponent.Builder
+    abstract class Builder extends AndroidInjector.Builder<ReviewersFragment> {
     }
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_pull_requests, container, false)
-    }
-
 }

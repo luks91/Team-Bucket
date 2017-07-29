@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+ * Copyright (c) 2017-present, Team Bucket Contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ * the License for the specific language governing permissions and limitations under the License.
+-->
+
+<android.support.constraint.ConstraintLayout xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                                             xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:id="@+id/reviewerConstraintLayout"
+                                             android:gravity="center_vertical"
+                                             android:orientation="vertical"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="176dp"
+                                             android:layout_marginStart="@dimen/margin_8dp"
+                                             android:layout_marginEnd="@dimen/margin_8dp"
+                                             android:layout_marginTop="@dimen/margin_8dp"
+                                             android:layout_marginBottom="@dimen/margin_8dp"
+                                             android:background="@color/light_blue_bg">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/headerTextView"
+        card_view:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/margin_8dp"
+        android:gravity="center"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/white"
+        android:text="@string/suggested_reviewers_header"
+        android:textSize="@dimen/primary_text_size"
+        android:textStyle="bold"
+        android:layout_marginEnd="@dimen/margin_8dp"/>
+
+    <ImageView
+        android:layout_width="@dimen/suggested_reviewer_avatar_size"
+        android:layout_height="@dimen/suggested_reviewer_avatar_size"
+        tools:src="@drawable/ic_launcher"
+        android:contentDescription="@string/reviewer_avatar_content_desc"
+        android:id="@+id/firstReviewer"
+        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintEnd_toStartOf="@+id/leadReviewer"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintTop_toBottomOf="@+id/headerTextView"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintVertical_chainStyle="packed"
+        card_view:layout_constraintBottom_toTopOf="@+id/firstReviewerName"
+        card_view:layout_constraintHorizontal_chainStyle="spread"/>
+
+    <ImageView
+        android:layout_width="@dimen/suggested_reviewer_avatar_size"
+        android:layout_height="@dimen/suggested_reviewer_avatar_size"
+        tools:src="@drawable/ic_launcher"
+        android:contentDescription="@string/reviewer_avatar_content_desc"
+        android:id="@+id/leadReviewer"
+        card_view:layout_constraintEnd_toStartOf="@+id/secondReviewer"
+        card_view:layout_constraintStart_toEndOf="@+id/firstReviewer"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:layout_marginStart="@dimen/margin_8dp"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintTop_toBottomOf="@+id/headerTextView"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintVertical_chainStyle="packed"
+        card_view:layout_constraintBottom_toTopOf="@+id/leadReviewerName"/>
+
+    <ImageView
+        android:layout_width="@dimen/suggested_reviewer_avatar_size"
+        android:layout_height="@dimen/suggested_reviewer_avatar_size"
+        tools:src="@drawable/ic_launcher"
+        android:contentDescription="@string/reviewer_avatar_content_desc"
+        android:id="@+id/secondReviewer"
+        card_view:layout_constraintStart_toEndOf="@+id/leadReviewer"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="@dimen/margin_8dp"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintVertical_chainStyle="packed"
+        card_view:layout_constraintTop_toBottomOf="@+id/headerTextView"
+        card_view:layout_constraintBottom_toTopOf="@+id/secondReviewerName"
+        android:layout_marginBottom="@dimen/margin_8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/firstReviewerName"
+        android:maxWidth="@dimen/suggested_reviewer_title_max_width"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        card_view:layout_constraintTop_toBottomOf="@+id/firstReviewer"
+        card_view:layout_constraintStart_toStartOf="@+id/firstReviewer"
+        card_view:layout_constraintEnd_toEndOf="@+id/firstReviewer"
+        android:lines="2"
+        android:ellipsize="end"
+        android:textColor="@color/white"
+        android:textSize="@dimen/secondary_text_size"
+        tools:text="Reviewer secondary"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/leadReviewerName"
+        android:maxWidth="@dimen/suggested_reviewer_title_max_width"
+        android:gravity="center"
+        card_view:layout_constraintTop_toBottomOf="@+id/leadReviewer"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        card_view:layout_constraintStart_toStartOf="@+id/leadReviewer"
+        android:layout_marginStart="0dp"
+        android:lines="2"
+        android:ellipsize="end"
+        tools:text="Szczyglowski Lukasz-ASD123"
+        android:textColor="@color/white"
+        android:textSize="@dimen/secondary_text_size"
+        card_view:layout_constraintEnd_toEndOf="@+id/leadReviewer"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/secondReviewerName"
+        android:maxWidth="@dimen/suggested_reviewer_title_max_width"
+        android:gravity="center"
+        card_view:layout_constraintTop_toBottomOf="@+id/secondReviewer"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        card_view:layout_constraintStart_toStartOf="@+id/secondReviewer"
+        android:lines="2"
+        android:ellipsize="end"
+        tools:text="Best Reviewer"
+        android:textColor="@color/white"
+        android:textSize="@dimen/secondary_text_size"
+        card_view:layout_constraintEnd_toEndOf="@+id/secondReviewer"/>
+
+</android.support.constraint.ConstraintLayout>

@@ -18,7 +18,7 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
 import com.github.luks91.teambucket.R
-import com.github.luks91.teambucket.main.pullrequests.PullRequestsFragment
+import com.github.luks91.teambucket.main.home.HomeFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
 import com.github.luks91.teambucket.main.statistics.StatisticsFragment
 
@@ -38,6 +38,15 @@ class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Res
     }
 
     enum class ViewPagerPage {
+        HOME {
+            override fun getItem(): Fragment {
+                return HomeFragment.newInstance()
+            }
+
+            override fun getTitle(res: Resources): CharSequence {
+                return res.getString(R.string.home_tab_title)
+            }
+        },
         REVIEWERS {
             override fun getItem(): Fragment {
                 return ReviewersFragment.newInstance()
@@ -46,24 +55,15 @@ class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Res
             override fun getTitle(res: Resources): CharSequence {
                 return res.getString(R.string.reviewers_tab_title)
             }
-        },
-        PULL_REQUESTS {
-            override fun getItem(): Fragment {
-                return PullRequestsFragment.newInstance()
-            }
-
-            override fun getTitle(res: Resources): CharSequence {
-                return res.getString(R.string.pull_requests_tab_title)
-            }
-        },
-        STATISTICS {
-            override fun getItem(): Fragment {
-                return StatisticsFragment.newInstance()
-            }
-
-            override fun getTitle(res: Resources): CharSequence {
-                return res.getString(R.string.statistics_tab_title)
-            }
+//        },
+//        STATISTICS {
+//            override fun getItem(): Fragment {
+//                return StatisticsFragment.newInstance()
+//            }
+//
+//            override fun getTitle(res: Resources): CharSequence {
+//                return res.getString(R.string.statistics_tab_title)
+//            }
         };
 
         abstract fun getItem(): Fragment

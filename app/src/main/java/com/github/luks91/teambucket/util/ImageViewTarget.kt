@@ -15,11 +15,12 @@ package com.github.luks91.teambucket.util
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.view.animation.Animation
 import android.widget.ImageView
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
 
-internal class ImageViewTarget(private val imageView: ImageView): Target {
+internal class ImageViewTarget(private val imageView: ImageView, private val loadedAnimation: Animation? = null): Target {
 
     init {
         //Picasso holds a WeakReference to the target, we need to strongly hold it here
@@ -28,6 +29,7 @@ internal class ImageViewTarget(private val imageView: ImageView): Target {
 
     override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
         imageView.setImageBitmap(bitmap)
+        loadedAnimation?.let { imageView.startAnimation(loadedAnimation) }
     }
 
     override fun onBitmapFailed(errorDrawable: Drawable?) {

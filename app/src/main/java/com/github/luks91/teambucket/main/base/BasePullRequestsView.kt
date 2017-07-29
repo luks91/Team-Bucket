@@ -11,15 +11,17 @@
  * the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.luks91.teambucket.main.reviewers;
+package com.github.luks91.teambucket.main.base
 
-import dagger.Subcomponent;
-import dagger.android.AndroidInjector;
+import com.github.luks91.teambucket.model.ImageLoadRequest
+import com.github.luks91.teambucket.model.ReviewersInformation
+import com.hannesdorfmann.mosby3.mvp.MvpView
+import io.reactivex.Observable
 
-@Subcomponent(modules = ReviewersFragmentModule.class)
-public interface ReviewersFragmentComponent extends AndroidInjector<ReviewersFragment> {
-
-    @Subcomponent.Builder
-    abstract class Builder extends AndroidInjector.Builder<ReviewersFragment> {
-    }
+interface BasePullRequestsView : MvpView {
+    fun onReviewersReceived(reviewers: ReviewersInformation)
+    fun onLoadingCompleted()
+    fun onSelfLoadingStarted()
+    fun intentPullToRefresh(): Observable<Any>
+    fun intentLoadAvatarImage(): Observable<ImageLoadRequest>
 }
