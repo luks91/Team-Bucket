@@ -15,19 +15,23 @@ package com.github.luks91.teambucket.persistence
 
 import android.content.Context
 import android.os.HandlerThread
-import com.github.luks91.teambucket.injection.AppContext
+import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.Repository
 import com.github.luks91.teambucket.model.User
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.model.Project
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Timed
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import io.realm.RealmModel
+import io.realm.RealmQuery
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -46,17 +50,24 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
         }
     }
 
-    fun selectedRepositories(): Observable<List<Repository>> {
+    fun selectedRepositories(sortColumn: String = "slug", notifyIfMissing: Boolean = true): Observable<List<Repository>> {
         return usingRealm { realm ->
-            realm.where(RealmRepository::class.java).findAll().asFlowable()
-                    .map { results -> results.toList() }
-                    .map { realmList -> realmList.map { realmRepo -> realmRepo.toRepository() } }
+            realm.where(RealmRepository::class.java).findAllSorted(sortColumn).asFlowable()
+                    .map { it.toList() }
+                    .map { it.map { it.toRepository() } }
                     .doOnNext { list ->
-                        if (list.isEmpty()) {
-                            eventsBus.post(
-                                    ReactiveBus.EventRepositoriesMissing(PersistenceProvider::class.java.simpleName))
+                        if (list.isEmpty() && notifyIfMissing) {
+                            eventsBus.post(ReactiveBus.EventRepositoriesMissing(PersistenceProvider::class.java.simpleName))
                         }
-                    }.toObservable()
+                    }
+                    .toObservable()
+        }
+    }
+
+    fun selectedProjects(sortColumn: String = "key"): Observable<List<Project>> {
+        return usingRealm { realm ->
+            realm.where(RealmProject::class.java).findAllSorted(sortColumn).asFlowable()
+                    .map { it.toList() }.map { it.map { it.toProject() } }.toObservable()
         }
     }
 
@@ -69,18 +80,46 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
                 .unsubscribeOn(looperScheduler)
     }
 
-    fun subscribeRepositoriesPersisting(): Disposable {
+    private inline fun <Stored: RealmModel, Compared: RealmModel> RealmQuery<Stored>.allNotExisting(
+            comparedList: List<Compared>, storedColumn: String, getComparedColumn: (Compared) -> String): RealmQuery<Stored> {
+
+        if (comparedList.isEmpty()) {
+            return this
+        }
+
+        var query = this.beginGroup()
+        comparedList.forEach { query = query.notEqualTo(storedColumn, getComparedColumn(it)) }
+        return query.endGroup()
+    }
+
+    fun subscribeRepositoriesPersisting(projects: Observable<List<Project>>, repositories: Observable<List<Repository>>)
+            : Disposable {
+
         return usingRealm { realm ->
-            eventsBus.receive(ReactiveBus.EventRepositories::class.java)
-                    .observeOn(looperScheduler)
-                    .map { (_, repositories) -> repositories.map { repository -> RealmRepository.Factory.from(repository) } }
-                    .map { repositories -> realm.executeTransaction {
-                        //TODO: removing all the rows and writing them again is not very efficient (though we're not dealing
-                        //TODO: with much data as of right now). Consider improving performance in this area.
-                        realm.delete(RealmRepository::class.java)
-                        realm.delete(RealmProject::class.java)
-                        realm.copyToRealmOrUpdate(repositories)
-                    } }
+            Observable.zip<List<RealmProject>, List<RealmRepository>, Unit>(
+                    projects
+                            .map { projects -> projects.map { project -> RealmProject.from(project) } }
+                            .observeOn(looperScheduler),
+                    repositories
+                            .map { repositories -> repositories.map { repository -> RealmRepository.Factory.from(repository) } }
+                            .observeOn(looperScheduler),
+                    BiFunction<List<RealmProject>, List<RealmRepository>, Unit> { projects, repositories ->
+                        realm.executeTransaction {
+                            realm.where(RealmProject::class.java)
+                                    .allNotExisting(projects, "key", { it.key })
+                                    .findAll().deleteAllFromRealm()
+                            realm.copyToRealmOrUpdate(projects)
+
+                            realm.where(RealmRepository::class.java)
+                                    .allNotExisting(projects, "project.key", { it.key })
+                                    .findAll().deleteAllFromRealm()
+
+                            realm.where(RealmRepository::class.java)
+                                    .allNotExisting(repositories, "slug", { it.slug })
+                                    .findAll().deleteAllFromRealm()
+                            realm.copyToRealmOrUpdate(repositories)
+                        }
+                    })
         }.subscribe()
     }
 

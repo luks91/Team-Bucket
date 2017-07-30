@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ * Copyright (c) 2017-present, Team Bucket Contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+ * the License for the specific language governing permissions and limitations under the License.
+-->
+<android.support.constraint.ConstraintLayout xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                                             xmlns:android="http://schemas.android.com/apk/res/android"
+                                             android:id="@+id/reviewerConstraintLayout"
+                                             android:gravity="center_vertical"
+                                             android:orientation="vertical"
+                                             android:layout_width="match_parent"
+                                             android:layout_height="match_parent">
+
+    <TextView
+        android:text="@string/could_not_retrieve_the_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/noDataHeaderText"
+        android:layout_marginTop="@dimen/margin_8dp"
+        android:textColor="@color/primary_text"
+        android:textSize="@dimen/primary_text_size"
+        card_view:layout_constraintTop_toTopOf="parent"
+        card_view:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:layout_marginBottom="@dimen/margin_24dp"
+        card_view:layout_constraintBottom_toTopOf="@+id/noDataStep1"
+        card_view:layout_constraintVertical_chainStyle="packed"/>
+
+    <TextView
+        android:text="@string/no_data_step1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/noDataStep1"
+        card_view:layout_constraintTop_toBottomOf="@id/noDataHeaderText"
+        card_view:layout_constraintBottom_toTopOf="@id/noDataStep2"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:textSize="@dimen/secondary_text_size"
+        android:textColor="@color/secondary_text"
+        card_view:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/margin_8dp"/>
+
+    <TextView
+        android:text="@string/no_data_step2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/noDataStep2"
+        card_view:layout_constraintTop_toBottomOf="@id/noDataStep1"
+        card_view:layout_constraintBottom_toTopOf="@id/fab_mock"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:textSize="@dimen/secondary_text_size"
+        android:textColor="@color/secondary_text"
+        card_view:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/margin_8dp"
+        android:layout_marginTop="@dimen/margin_8dp"/>
+
+    <TextView
+        android:text="@string/no_data_step3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/noDataStep3"
+        android:textSize="@dimen/secondary_text_size"
+        android:textColor="@color/secondary_text"
+        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintHorizontal_chainStyle="packed"
+        android:layout_marginStart="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toStartOf="@+id/fab_mock"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        card_view:layout_constraintTop_toTopOf="@+id/fab_mock"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintBottom_toBottomOf="@+id/fab_mock"
+        android:layout_marginBottom="@dimen/margin_8dp"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_mock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@drawable/ic_settings_white"
+        card_view:fabSize="mini"
+        card_view:borderWidth="0dp"
+        card_view:layout_constraintStart_toEndOf="@+id/noDataStep3"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        card_view:layout_constraintTop_toBottomOf="@+id/noDataStep2"
+        card_view:layout_constraintBottom_toTopOf="@+id/noDataStep4"
+        android:layout_marginBottom="@dimen/margin_8dp"/>
+
+    <TextView
+        android:text="@string/no_data_step4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/noDataStep4"
+        card_view:layout_constraintTop_toBottomOf="@id/fab_mock"
+        card_view:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/margin_8dp"
+        android:textSize="@dimen/secondary_text_size"
+        android:textColor="@color/secondary_text"
+        card_view:layout_constraintStart_toStartOf="parent"
+        card_view:layout_constraintHorizontal_chainStyle="packed"
+        android:layout_marginStart="@dimen/margin_8dp"/>
+
+</android.support.constraint.ConstraintLayout>

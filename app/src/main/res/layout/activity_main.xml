@@ -26,10 +26,14 @@
         <android.support.design.widget.TabLayout
             android:id="@+id/tabs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabMode="fixed"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="bottom|end"
+            app:tabMode="scrollable"
+            app:tabMinWidth="@dimen/main_tab_item_min_width"
+            app:tabGravity="fill"
             app:tabIndicatorColor="@color/white"
-            app:tabGravity="fill"/>
+            app:tabContentStart="@dimen/main_tab_content_start"/>
+
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.view.ViewPager
@@ -37,4 +41,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"  />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/mainActivityFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/margin_8dp"
+        android:src="@drawable/ic_settings_white"
+        app:layout_anchor="@id/tabs"
+        app:layout_anchorGravity="center|left|start"
+        app:fabSize="mini"
+        app:borderWidth="0dp" />
 </android.support.design.widget.CoordinatorLayout>

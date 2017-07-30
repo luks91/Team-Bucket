@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils
 @RealmClass
 internal open class RealmProject(@PrimaryKey open var key: String = EMPTY_STRING,
                                  open var name: String = EMPTY_STRING,
-                                 open var description: String = EMPTY_STRING) : RealmModel {
+                                 open var description: String? = EMPTY_STRING) : RealmModel {
     fun toProject(): Project {
         return Project(key, name, description)
     }
@@ -90,7 +90,6 @@ internal open class RealmPullRequestMember(open var user: RealmUser = RealmUser(
             return RealmPullRequestMember(RealmUser.from(member.user), member.role, member.approved, member.status)
         }
     }
-
 }
 
 @RealmClass
@@ -106,7 +105,6 @@ internal open class RealmGitReference(open var displayId: String = StringUtils.E
             return RealmGitReference(gitReference.displayId, gitReference.latestCommit)
         }
     }
-
 }
 
 @RealmClass

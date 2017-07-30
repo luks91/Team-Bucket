@@ -11,17 +11,23 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is
  * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
  * the License for the specific language governing permissions and limitations under the License.
+ *
+ * Code snippet based on http://evgenii.com/blog/spring-button-animation-on-android/
 -->
 
-<resources>
+<set xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <!-- Base application theme. -->
-    <style name="AppTheme"
-           parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/main_accent</item>
-    </style>
+    <alpha
+        android:duration="3000"
+        android:fromAlpha="0"
+        android:toAlpha="100" />
 
-</resources>
+    <scale
+        android:duration="3000"
+        android:fromXScale="0.3"
+        android:toXScale="1.0"
+        android:fromYScale="0.3"
+        android:toYScale="1.0"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+</set>

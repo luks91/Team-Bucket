@@ -86,7 +86,7 @@
             card_view:layout_constraintStart_toEndOf="@+id/reviewerName"/>
 
         <ImageView
-            android:layout_width="wrap_content"
+            android:layout_width="16dp"
             android:layout_height="0dp"
             card_view:srcCompat="@android:drawable/btn_star"
             android:id="@+id/lazyReviewerWarning"
@@ -95,7 +95,8 @@
             tools:visibility="visible"
             card_view:layout_constraintStart_toEndOf="@+id/pullRequestsCount"
             card_view:layout_constraintTop_toTopOf="@+id/pullRequestsCount"
-            card_view:layout_constraintBottom_toBottomOf="@+id/pullRequestsCount"/>
+            card_view:layout_constraintBottom_toBottomOf="@+id/pullRequestsCount"
+            android:layout_marginTop="2dp"/>
 
     </android.support.constraint.ConstraintLayout>
 

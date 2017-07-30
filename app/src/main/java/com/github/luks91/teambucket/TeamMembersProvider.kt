@@ -15,9 +15,9 @@ package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
-import com.github.luks91.teambucket.presenter.ReviewersPresenter
-import com.github.luks91.teambucket.rest.BitbucketApi
-import com.github.luks91.teambucket.util.ReactiveBus
+import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
+import com.github.luks91.teambucket.connection.BitbucketApi
+import com.github.luks91.teambucket.connection.ConnectionProvider
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
@@ -44,8 +44,8 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                     .switchMap { members -> if (members.haveExpired()) remoteMembership.refCount() else Observable.just(members) }
         }.map { timedMembers -> timedMembers.value() }
 
-                //use mergeWith to bind to subscribe/unsubscribe lifecycle of the upstream observable
-                .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<List<User>>() })
+            //use mergeWith to bind to subscribe/unsubscribe lifecycle of the upstream observable
+            .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<List<User>>() })
     }
 
     private fun Timed<List<User>>.haveExpired(): Boolean {
@@ -108,7 +108,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                     }
                 }
 
-                return@map team.groupBy { key -> key }.filter { it.value.size >= MINIMUM_USER_OCCURRENCES }
+                return@map team.asSequence().groupBy { it }.filter { it.value.size >= MINIMUM_USER_OCCURRENCES }
                         .values.map { it -> it[0] }
             }
         }
