@@ -38,4 +38,7 @@
     <dimen name="reviewer_state_icon_size">16dp</dimen>
     <dimen name="suggested_reviewer_avatar_size">72dp</dimen>
     <dimen name="suggested_reviewer_title_max_width">104dp</dimen>
+    <dimen name="main_tab_content_start">70dp</dimen>
+    <dimen name="main_tab_item_min_width">128dp</dimen>
+    <dimen name="suggested_reviewers_card_height">176dp</dimen>
 </resources>

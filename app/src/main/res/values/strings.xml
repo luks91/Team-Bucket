@@ -20,6 +20,7 @@
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
     <string name="confirm">OK</string>
+    <string name="cancel">Cancel</string>
 
     <string name="home_tab_title">Home</string>
     <string name="reviewers_tab_title">Reviewers</string>
@@ -32,5 +33,5 @@
     <string name="reviewing_count">Reviewing: %d</string>
     <string name="reviewer_avatar_content_desc">Reviewer\'s avatar</string>
     <string name="expand_reviewer_info_desc">Expand reviewer information</string>
-    <string name="suggested_reviewers_header">SUGGESTED REVIEWERS</string>
+    <string name="suggested_reviewers_header">Suggested Reviewers</string>
 </resources>

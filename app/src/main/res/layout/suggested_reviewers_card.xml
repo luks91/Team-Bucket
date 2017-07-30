@@ -20,12 +20,11 @@
                                              android:gravity="center_vertical"
                                              android:orientation="vertical"
                                              android:layout_width="match_parent"
-                                             android:layout_height="176dp"
+                                             android:layout_height="@dimen/suggested_reviewers_card_height"
                                              android:layout_marginStart="@dimen/margin_8dp"
                                              android:layout_marginEnd="@dimen/margin_8dp"
                                              android:layout_marginTop="@dimen/margin_8dp"
-                                             android:layout_marginBottom="@dimen/margin_8dp"
-                                             android:background="@color/light_blue_bg">
+                                             android:layout_marginBottom="@dimen/margin_8dp">
 
     <TextView
         android:layout_width="0dp"
@@ -37,10 +36,9 @@
         android:layout_marginStart="@dimen/margin_8dp"
         android:gravity="center"
         card_view:layout_constraintEnd_toEndOf="parent"
-        android:textColor="@color/white"
+        android:textColor="@color/primary_text"
         android:text="@string/suggested_reviewers_header"
         android:textSize="@dimen/primary_text_size"
-        android:textStyle="bold"
         android:layout_marginEnd="@dimen/margin_8dp"/>
 
     <ImageView
@@ -103,7 +101,7 @@
         card_view:layout_constraintEnd_toEndOf="@+id/firstReviewer"
         android:lines="2"
         android:ellipsize="end"
-        android:textColor="@color/white"
+        android:textColor="@color/secondary_text"
         android:textSize="@dimen/secondary_text_size"
         tools:text="Reviewer secondary"/>
 
@@ -121,7 +119,7 @@
         android:lines="2"
         android:ellipsize="end"
         tools:text="Szczyglowski Lukasz-ASD123"
-        android:textColor="@color/white"
+        android:textColor="@color/secondary_text"
         android:textSize="@dimen/secondary_text_size"
         card_view:layout_constraintEnd_toEndOf="@+id/leadReviewer"/>
 
@@ -138,7 +136,7 @@
         android:lines="2"
         android:ellipsize="end"
         tools:text="Best Reviewer"
-        android:textColor="@color/white"
+        android:textColor="@color/secondary_text"
         android:textSize="@dimen/secondary_text_size"
         card_view:layout_constraintEnd_toEndOf="@+id/secondReviewer"/>
 

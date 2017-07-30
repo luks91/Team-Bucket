@@ -14,9 +14,12 @@
 package com.github.luks91.teambucket.main
 
 import com.github.luks91.teambucket.model.*
+import io.reactivex.Observable
 
 interface MainView : com.hannesdorfmann.mosby3.mvp.MvpView {
     fun requestUserCredentials() : io.reactivex.Observable<BitbucketCredentials>
     fun showNoNetworkNotification()
-    fun requestToSelectFrom(@android.support.annotation.StringRes titleRes: Int, projects: List<String>): io.reactivex.Observable<List<Int>>
+    fun requestToSelectFrom(@android.support.annotation.StringRes titleRes: Int, resources: List<String>,
+                            selectedIndices: IntArray): io.reactivex.Observable<List<Int>>
+    fun intentRepositorySettings(): Observable<Any>
 }

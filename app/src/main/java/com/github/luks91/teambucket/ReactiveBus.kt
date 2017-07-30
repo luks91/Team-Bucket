@@ -32,7 +32,6 @@ class ReactiveBus @Inject constructor(){
 
     data class EventCredentialsInvalid(val notifier: String)
     data class EventRepositoriesMissing(val notifier: String)
-    data class EventRepositories(val notifier: String, val repositories: List<Repository>)
     data class EventNoNetworkConnection(val notifier: String)
 
 }

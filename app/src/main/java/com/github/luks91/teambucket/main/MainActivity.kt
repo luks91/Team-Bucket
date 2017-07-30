@@ -31,8 +31,11 @@ import dagger.android.support.HasSupportFragmentInjector
 import javax.inject.Inject
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.AndroidInjector
+import io.reactivex.subjects.PublishSubject
 
 class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSupportFragmentInjector {
+
+    private val updateRepositoriesIntents = PublishSubject.create<Any>()
 
     @Inject
     lateinit var fragmentDispatchingAndroidInjector: DispatchingAndroidInjector<Fragment>
@@ -49,6 +52,8 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         return fragmentDispatchingAndroidInjector
     }
 
+    override fun intentRepositorySettings(): Observable<Any> = updateRepositoriesIntents
+
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
@@ -58,8 +63,9 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
             adapter = fragmentsPagerAdapter
             val tabLayout = this@MainActivity.findViewById(R.id.tabs) as TabLayout
             tabLayout.setupWithViewPager(this)
-
         }
+
+        findViewById(R.id.mainActivityFab).setOnClickListener { updateRepositoriesIntents.onNext(Object()) }
     }
 
     override fun requestUserCredentials(): Observable<BitbucketCredentials> {
@@ -93,13 +99,14 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         })
     }
 
-    override fun requestToSelectFrom(@StringRes titleRes: Int, projects: List<String>): Observable<List<Int>> {
+    override fun requestToSelectFrom(@StringRes titleRes: Int, resources: List<String>, selectedIndices: IntArray)
+            : Observable<List<Int>> {
         return Observable.create<List<Int>>({
             emitter ->
                 val dialog = MaterialDialog.Builder(this)
                         .title(titleRes)
-                        .items(projects)
-                        .itemsCallbackMultiChoice(null, { _, _, _ -> true })
+                        .items(resources)
+                        .itemsCallbackMultiChoice(selectedIndices.toTypedArray(), { _, _, _ -> true })
                         .onPositive { dialog, _ ->
                             emitter.onNext(dialog.selectedIndices!!.asList())
                             emitter.onComplete()
@@ -109,6 +116,7 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
                             emitter.onComplete()
                         }
                         .positiveText(R.string.confirm).show()
+
             emitter.setCancellable {
                 if (dialog.isShowing) {
                     dialog.dismiss()

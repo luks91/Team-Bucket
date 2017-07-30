@@ -21,7 +21,7 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/cardview_dark_background</item>
+        <item name="colorAccent">@color/main_accent</item>
     </style>
 
 </resources>

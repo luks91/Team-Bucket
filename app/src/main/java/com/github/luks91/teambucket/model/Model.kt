@@ -54,7 +54,7 @@ data class BitbucketConnection(val userName: String, val serverUrl: String, val 
 
 data class Project(@Json(name = "key") val key: String,
                    @Json(name = "name") val name: String,
-                   @Json(name = "description") val description: String)
+                   @Json(name = "description") val description: String?)
 
 data class Repository(@Json(name = "slug") val slug: String,
                       @Json(name = "name") val name: String,
