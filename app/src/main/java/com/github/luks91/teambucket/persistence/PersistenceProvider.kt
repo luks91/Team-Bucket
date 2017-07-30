@@ -112,7 +112,9 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
 
                             realm.where(RealmRepository::class.java)
                                     .allNotExisting(projects, "project.key", { it.key })
-                                    .or()
+                                    .findAll().deleteAllFromRealm()
+
+                            realm.where(RealmRepository::class.java)
                                     .allNotExisting(repositories, "slug", { it.slug })
                                     .findAll().deleteAllFromRealm()
                             realm.copyToRealmOrUpdate(repositories)

@@ -40,9 +40,10 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
                        private val layoutManager: LinearLayoutManager)
     : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private companion object Const {
+    private companion object {
         private const val REVIEWER = 0
         private const val PULL_REQUEST = 1
+        private const val EMPTY_VIEW = 2
     }
 
     private val reviewersList = mutableListOf<Reviewer>()
@@ -183,12 +184,17 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent!!.context)
         when(viewType) {
+            EMPTY_VIEW -> return object: RecyclerView.ViewHolder(inflater.inflate(R.layout.no_data_view, parent, false)) {}
             PULL_REQUEST -> return PullRequestViewHolder(inflater.inflate(R.layout.pull_request_card, parent, false))
             else -> return DataViewHolder(inflater.inflate(R.layout.reviewer_card, parent, false))
         }
     }
 
     override fun getItemViewType(position: Int): Int {
+        if (reviewersList.isEmpty()) {
+            return EMPTY_VIEW
+        }
+
         if (position > expandedReviewerIndex && position <= expandedReviewerIndex + pullRequestsList.size) {
             return PULL_REQUEST
         } else {
@@ -218,7 +224,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     }
 
     override fun getItemCount(): Int {
-        return reviewersList.size + pullRequestsList.size
+        return if (reviewersList.isEmpty()) 1 else reviewersList.size + pullRequestsList.size
     }
 
     interface Callback {

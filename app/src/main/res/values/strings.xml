@@ -34,4 +34,10 @@
     <string name="reviewer_avatar_content_desc">Reviewer\'s avatar</string>
     <string name="expand_reviewer_info_desc">Expand reviewer information</string>
     <string name="suggested_reviewers_header">Suggested Reviewers</string>
+    <string name="could_not_retrieve_the_data">"Could not retrieve the data :-(</string>
+    <string name="no_data_step1">1. Make sure you are connected to the internet</string>
+    <string name="no_data_step2">2. Check if the server requires VPN access</string>
+    <string name="no_data_step3">3. Setup the app by clicking on</string>
+    <string name="no_data_step4">4. Pull down to refresh</string>
+    <string name="coming_soon">Coming soon! :-)</string>
 </resources>

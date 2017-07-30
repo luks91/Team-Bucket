@@ -33,6 +33,9 @@ import com.squareup.picasso.Target
 class HomeAdapter(private val context: Context, private val callback: HomeAdapter.Callback):
         RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    val EMPTY_VIEW_TYPE = 0
+    val REVIEWERS_SUGGESTION_VIEW_TYPE = 1
+
     private var reviewers: ReviewersInformation = ReviewersInformation.EMPTY
 
     fun onReviewersReceived(reviewers: ReviewersInformation) {
@@ -42,13 +45,22 @@ class HomeAdapter(private val context: Context, private val callback: HomeAdapte
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent!!.context)
-        return SuggestedReviewersViewHolder(inflater.inflate(R.layout.suggested_reviewers_card, parent, false))
+        when (viewType) {
+            EMPTY_VIEW_TYPE -> return object: RecyclerView.ViewHolder(inflater.inflate(R.layout.no_data_view, parent, false)) {}
+            else -> return SuggestedReviewersViewHolder(inflater.inflate(R.layout.suggested_reviewers_card, parent, false))
+        }
     }
 
     override fun getItemCount() = if (reviewers != ReviewersInformation.EMPTY) 1 else 0
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) =
-            (holder as SuggestedReviewersViewHolder).fillIn(reviewers)
+    override fun getItemViewType(position: Int): Int =
+            if (reviewers.reviewers.isEmpty()) EMPTY_VIEW_TYPE else REVIEWERS_SUGGESTION_VIEW_TYPE
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is SuggestedReviewersViewHolder -> holder.fillIn(reviewers)
+        }
+    }
 
     inner class SuggestedReviewersViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val suggestedReviewersViews: Array<Pair<ImageView, TextView>> by lazy {

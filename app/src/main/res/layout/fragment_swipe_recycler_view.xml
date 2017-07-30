@@ -24,4 +24,9 @@
         android:id="@+id/reviewersRecyclerView"
         android:background="@color/divider"/>
 
+    <include
+        layout="@layout/no_data_view"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"/>
+
 </android.support.v4.widget.SwipeRefreshLayout>
