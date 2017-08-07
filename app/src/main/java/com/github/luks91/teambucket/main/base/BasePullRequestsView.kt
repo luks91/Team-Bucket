@@ -13,7 +13,7 @@
 
 package com.github.luks91.teambucket.main.base
 
-import com.github.luks91.teambucket.model.ImageLoadRequest
+import com.github.luks91.teambucket.model.AvatarLoadRequest
 import com.github.luks91.teambucket.model.ReviewersInformation
 import com.hannesdorfmann.mosby3.mvp.MvpView
 import io.reactivex.Observable
@@ -23,5 +23,5 @@ interface BasePullRequestsView : MvpView {
     fun onLoadingCompleted()
     fun onSelfLoadingStarted()
     fun intentPullToRefresh(): Observable<Any>
-    fun intentLoadAvatarImage(): Observable<ImageLoadRequest>
+    fun intentLoadAvatarImage(): Observable<AvatarLoadRequest>
 }

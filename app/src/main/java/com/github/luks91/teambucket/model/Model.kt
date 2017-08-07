@@ -38,7 +38,7 @@ data class BitbucketConnection(val userName: String, val serverUrl: String, val 
 
         private fun createBasicToken(username: String, password: String): String {
             val toBase64: String = username + ':' + password
-            return "Basic " + Base64.encodeToString(toBase64.toByteArray(Charset.forName("UTF-8")), Base64.NO_WRAP)
+            return "Basic ${Base64.encodeToString(toBase64.toByteArray(Charset.forName("UTF-8")), Base64.NO_WRAP)}"
         }
 
         private fun createBitbucketApi(url: String): BitbucketApi {
@@ -66,6 +66,8 @@ data class User(@Json(name = "id") val id: Int,
                 @Json(name = "slug") val slug: String,
                 @Json(name = "avatarUrl") val avatarUrlSuffix: String)
 
+data class Density(val inbound: Int, val outbound: Int)
+
 data class PullRequestMember(@Json(name = "user") val user: User,
                              @Json(name = "role") val role: String,
                              @Json(name = "approved") val approved: Boolean,
@@ -90,6 +92,7 @@ data class PullRequest(@Json(name = "id") val id: Long,
                        @Json(name = "fromRef") val sourceBranch: GitReference,
                        @Json(name = "toRef") val targetBranch: GitReference) {
 
+    //TODO: Business logic.. should not be in model.
     fun isLazilyReviewed(): Boolean {
         val currentTime = System.currentTimeMillis()
         return if (TimeUnit.MILLISECONDS.toDays(updatedDate - createdDate) <= 3) {
@@ -111,10 +114,11 @@ const val STATUS_ALL = "all"
 data class GitReference(@Json(name = "displayId") val displayId: String,
                         @Json(name = "latestCommit") val latestCommit: String)
 
-data class Reviewer(val user: User, val reviewsCount: Int, val isLazy: Boolean)
-data class ReviewersInformation(val reviewers: List<Reviewer>, val serverUrl: String) {
+data class Reviewer(val user: User, val density: Density, val reviewsCount: Int, val isLazy: Boolean)
+data class ReviewersInformation(val reviewers: List<Reviewer>, val preferredReviewers: List<Reviewer>, val lead: User?,
+                                val serverUrl: String) {
     companion object {
-        val EMPTY = ReviewersInformation(listOf(), StringUtils.EMPTY)
+        val EMPTY = ReviewersInformation(listOf(), listOf(), null, StringUtils.EMPTY)
     }
 }
 
@@ -125,4 +129,4 @@ data class PagedResponse<out T>(@Json(name = "size") val size: Int,
                                 @Json(name = "start") val start: Int,
                                 @Json(name = "nextPageStart") val nextPageStart: Int = Int.MAX_VALUE)
 
-data class ImageLoadRequest(val serverUrl: String, val urlPath: String, val target: Target)
+data class AvatarLoadRequest(val user: User, val target: Target)

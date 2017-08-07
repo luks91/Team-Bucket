@@ -48,9 +48,7 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
 
     override fun createPresenter(): MainPresenter = mainPresenter
 
-    override fun supportFragmentInjector(): AndroidInjector<Fragment> {
-        return fragmentDispatchingAndroidInjector
-    }
+    override fun supportFragmentInjector(): AndroidInjector<Fragment> = fragmentDispatchingAndroidInjector
 
     override fun intentRepositorySettings(): Observable<Any> = updateRepositoriesIntents
 

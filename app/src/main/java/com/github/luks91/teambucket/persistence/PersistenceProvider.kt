@@ -16,11 +16,8 @@ package com.github.luks91.teambucket.persistence
 import android.content.Context
 import android.os.HandlerThread
 import com.github.luks91.teambucket.di.AppContext
-import com.github.luks91.teambucket.model.PullRequest
-import com.github.luks91.teambucket.model.Repository
-import com.github.luks91.teambucket.model.User
 import com.github.luks91.teambucket.ReactiveBus
-import com.github.luks91.teambucket.model.Project
+import com.github.luks91.teambucket.model.*
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.Scheduler
@@ -142,10 +139,10 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
         }.subscribe()
     }
 
-    fun pullRequestsUnderReviewBy(user: User): Observable<List<PullRequest>> {
+    fun pullRequestsUnderReviewBy(userSlug: String): Observable<List<PullRequest>> {
         return usingRealm { realm ->
             realm.where(RealmPullRequestMember::class.java)
-                    .equalTo("user.slug", user.slug)
+                    .equalTo("user.slug", userSlug)
                     .equalTo("approved", false)
                     .equalTo("role", "REVIEWER")
                     .findAll().asFlowable()
@@ -157,13 +154,13 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
         }.subscribeOn(looperScheduler)
     }
 
-    fun teamMembersPersisting(teamMembers: Observable<Timed<List<User>>>): Observable<Any> {
+    fun teamMembersPersisting(teamMembers: Observable<Timed<Map<User, Density>>>): Observable<Any> {
         //TODO-#11: Store team members in Realm
         return teamMembers.cast(Any::class.java)
     }
 
-    fun teamMembers(): Observable<Timed<List<User>>> {
+    fun teamMembers(): Observable<Timed<Map<User, Density>>> {
         //TODO-#11: Store team members in Realm
-        return Observable.just(Timed<List<User>>(listOf(), System.currentTimeMillis(), TimeUnit.MILLISECONDS))
+        return Observable.just(Timed<Map<User, Density>>(mapOf(), System.currentTimeMillis(), TimeUnit.MILLISECONDS))
     }
 }

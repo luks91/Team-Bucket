@@ -30,14 +30,14 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                                               val persistenceProvider: PersistenceProvider,
                                               val eventsBus: ReactiveBus) {
 
-    private companion object Util {
+    companion object {
         const val PAGES_PER_REPOSITORY = 1L
         const val MINIMUM_USER_OCCURRENCES = 2
         const val PAGE_LIMIT = 20
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
     }
 
-    fun teamMembers(refreshTicks: Observable<Any>): Observable<List<User>> {
+    fun teamMembers(refreshTicks: Observable<Any>): Observable<Map<User, Density>> {
         val remoteMembership = calculateTeamMembership().publish()
         return refreshTicks.switchMap { _ ->
             persistenceProvider.teamMembers()
@@ -45,18 +45,18 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         }.map { timedMembers -> timedMembers.value() }
 
             //use mergeWith to bind to subscribe/unsubscribe lifecycle of the upstream observable
-            .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<List<User>>() })
+            .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<Map<User, Density>>() })
     }
 
-    private fun Timed<List<User>>.haveExpired(): Boolean {
+    private fun Timed<Map<User, Density>>.haveExpired(): Boolean {
         return (System.currentTimeMillis() - time()) > TimeUnit.HOURS.toMillis(MEMBERSHIP_TIMEOUT_HOURS) || value().isEmpty()
     }
 
-    private fun calculateTeamMembership(): Observable<Timed<List<User>>> {
+    private fun calculateTeamMembership(): Observable<Timed<Map<User, Density>>> {
         return Observable.combineLatest(
                 connectionProvider.obtainConnection(),
                 persistenceProvider.selectedRepositories(),
-                BiFunction<BitbucketConnection, List<Repository>, Observable<Timed<List<User>>>> {
+                BiFunction<BitbucketConnection, List<Repository>, Observable<Timed<Map<User, Density>>>> {
                     (userName, _, api, token), repositories ->
                     return@BiFunction  Observable.fromIterable(repositories)
                             .flatMap { (slug, _, project) ->
@@ -70,22 +70,22 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                                                 ReviewersPresenter::class.java.simpleName))
                             }.reduce { t1, t2 -> t1 + t2 }.toObservable()
                             .compose(intoTeamMembershipOf(userName))
-                            .switchIfEmpty(Observable.just(listOf()))
+                            .switchIfEmpty(Observable.just(mapOf()))
                             .timestamp()
                 }
         ).switchMap { stream -> stream }
     }
 
-    private fun intoTeamMembershipOf(userName: String): ObservableTransformer<List<PullRequest>, List<User>> {
+    private fun intoTeamMembershipOf(userName: String): ObservableTransformer<List<PullRequest>, Map<User, Density>> {
         return ObservableTransformer { upstream ->
             upstream.map { pullRequests ->
-                val team = mutableListOf<User>()
+                val densitiesMap = mutableMapOf<User, MutableDensity>()
                 for (pullRequest in pullRequests) {
                     val author = pullRequest.author.user
                     val reviewers = pullRequest.reviewers.map { it.user }
                     //if current user is the author, add all the other reviewers
                     if (author.name.equals(userName, ignoreCase = true)) {
-                        team += reviewers
+                        reviewers.forEach { densitiesMap.getOrPut(it, { MutableDensity() }).inbound++ }
                     } else { //if current user is a reviewer, add all the other reviewers and the author
                         var foundUser = false
                         var index = 0
@@ -96,21 +96,40 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                             if (user.name.equals(userName, ignoreCase = true)) {
                                 foundUser = true
                                 if (index > 0) {
-                                    team += reviewers.subList(0, index)
+                                    reviewers.subList(0, index)
+                                            .forEach { densitiesMap.getOrPut(it, { MutableDensity() }).inbound++ }
                                 }
                                 if (index < reviewers.size - 1) {
-                                    team += reviewers.subList(index + 1, reviewers.size)
+                                    reviewers.subList(index + 1, reviewers.size)
+                                            .forEach { densitiesMap.getOrPut(it, { MutableDensity() }).inbound++ }
                                 }
-                                team += author
+                                densitiesMap.getOrPut(author, { MutableDensity() }).outbound++
                             }
                             index++
                         }
                     }
                 }
 
-                return@map team.asSequence().groupBy { it }.filter { it.value.size >= MINIMUM_USER_OCCURRENCES }
-                        .values.map { it -> it[0] }
+                return@map densitiesMap
+                        .filterValues { it.inbound + it.outbound > MINIMUM_USER_OCCURRENCES }
+                        .mapValues { Density(it.value.inbound, it.value.outbound) }
             }
         }
     }
+
+    private class MutableDensity(var inbound: Int = 0, var outbound: Int = 0)
+}
+
+fun Map<User, Density>.getLeadUser(): User? {
+    var leadParam = 0.0
+    var leadUser: User? = null
+    for ((user, density) in this) {
+        val currentUserParam = 1.0 * density.inbound / Math.max(1, density.outbound)
+        if (currentUserParam > leadParam) {
+            leadParam = currentUserParam
+            leadUser = user
+        }
+    }
+
+    return if (leadParam > 0.75 * TeamMembersProvider.PAGE_LIMIT * TeamMembersProvider.PAGES_PER_REPOSITORY) leadUser else null
 }
