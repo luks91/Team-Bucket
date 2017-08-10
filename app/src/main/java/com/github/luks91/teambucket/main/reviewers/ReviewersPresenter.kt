@@ -23,6 +23,7 @@ import com.github.luks91.teambucket.main.base.BasePullRequestsPresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class ReviewersPresenter @Inject constructor(@AppContext context: Context, connectionProvider: ConnectionProvider,
@@ -42,13 +43,13 @@ class ReviewersPresenter @Inject constructor(@AppContext context: Context, conne
         disposable.dispose()
     }
 
-    private fun subscribeProvidingPullRequests(view: ReviewersView): Disposable {
-        return view.intentRetrieveReviews()
-                .switchMap { (userIndex, user) -> persistenceProvider.pullRequestsUnderReviewBy(user)
+    private fun subscribeProvidingPullRequests(view: ReviewersView): Disposable =
+            view.intentRetrieveReviews()
+                .switchMap { (userIndex, user) -> persistenceProvider.pullRequestsUnderReviewBy(user.slug)
                         .map { pullRequests -> pullRequests.mapIndexed { i, pr -> IndexedValue(userIndex + 1 + i, pr) } }
                         .first(listOf()).toObservable() //FIXME: Adapter cannot handle live updates ATM.. we need to change that
                 }
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { list -> view.onPullRequestsProvided(list) }
-    }
 }

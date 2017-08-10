@@ -25,8 +25,10 @@ import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
 import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.getLeadUser
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -87,7 +89,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
         return Observable.zip(
                 pullRequests,
                 teamMembersProvider.teamMembers(view.intentPullToRefresh().startWith { Object() }),
-                BiFunction<Pair<List<PullRequest>, String>, List<User>, ReviewersInformation> {
+                BiFunction<Pair<List<PullRequest>, String>, Map<User, Density>, ReviewersInformation> {
                     (pullRequests, serverUrl), team ->
                     reviewersInformationFrom(team, pullRequests, serverUrl)
                 })
@@ -96,10 +98,10 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                 .subscribe { prCount -> view.onReviewersReceived(prCount) }
     }
 
-    private fun reviewersInformationFrom(teamMembers: List<User>, pullRequests: List<PullRequest>, serverUrl: String)
+    private fun reviewersInformationFrom(teamMembers: Map<User, Density>, pullRequests: List<PullRequest>, serverUrl: String)
             : ReviewersInformation {
 
-        val usersToPullRequests = teamMembers.associateBy({it}, {0}).toMutableMap()
+        val usersToPullRequests = teamMembers.keys.associateBy({it}, {0}).toMutableMap()
         val lazyReviewers = mutableSetOf<User>()
 
         pullRequests.forEach {
@@ -109,22 +111,33 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                     .forEach { usersToPullRequests[it.user] = usersToPullRequests[it.user]!! + 1 }
 
             if (it.isLazilyReviewed()) {
-                it.reviewers.asSequence()
-                        .filter { it.status == UNAPPROVED }
-                        .forEach { lazyReviewers.add(it.user) }
+                it.reviewers.filter { it.status == UNAPPROVED }.forEach { lazyReviewers.add(it.user) }
             }
         }
 
         val returnList = mutableListOf<Reviewer>()
         for ((key, value) in usersToPullRequests) {
-            returnList.add(Reviewer(user = key, reviewsCount = value, isLazy = lazyReviewers.contains(key)))
+            returnList.add(Reviewer(user = key, density = teamMembers[key]!!, reviewsCount = value,
+                    isLazy = lazyReviewers.contains(key)))
         }
 
-        return ReviewersInformation(returnList.sortedWith(compareBy({ it.reviewsCount }, { it.user.displayName })), serverUrl)
+        val leadUser = teamMembers.getLeadUser()
+        return ReviewersInformation(
+                returnList.sortedWith(compareBy({ it.user != leadUser }, { it.reviewsCount }, { it.user.displayName })),
+                returnList.sortedWith(compareBy({ it.user != leadUser },
+                        { Math.pow(1.0 * (it.reviewsCount + 1), 2.5) - it.density.inbound * it.density.outbound }
+                    )).take(Math.min(3, returnList.size)),
+                leadUser, serverUrl)
     }
 
     private fun subscribeImageLoading(view: T): Disposable {
         return view.intentLoadAvatarImage()
+                .withLatestFrom(
+                        connectionProvider.obtainConnection().map { it.serverUrl },
+                        BiFunction<AvatarLoadRequest, String, ImageLoadRequest> {
+                            (user, target), serverUrl ->
+                            ImageLoadRequest(serverUrl, user.avatarUrlSuffix, target)
+                        })
                 .subscribe { (serverUrl, urlPath, target) ->
                     val requestBuilder = Picasso.with(context)
                     val requestCreator = if (URLUtil.isValidUrl(urlPath)) requestBuilder.load(urlPath)
@@ -141,4 +154,5 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
         disposable.dispose()
     }
 
+    private data class ImageLoadRequest(val serverUrl: String, val urlPath: String, val target: Target)
 }

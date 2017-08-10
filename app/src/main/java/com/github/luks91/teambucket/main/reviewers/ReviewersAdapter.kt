@@ -14,7 +14,6 @@
 package com.github.luks91.teambucket.main.reviewers
 
 import android.content.Context
-import android.support.annotation.DrawableRes
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -23,22 +22,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.github.luks91.teambucket.R
+import com.github.luks91.teambucket.main.base.PullRequestViewHolder
+import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.util.ImageViewTarget
-import com.github.luks91.teambucket.model.Reviewer
-import com.github.luks91.teambucket.model.PullRequest
-import com.github.luks91.teambucket.model.PullRequestMember
-import com.github.luks91.teambucket.model.APPROVED
-import com.github.luks91.teambucket.model.NEEDS_WORK
-import com.github.luks91.teambucket.model.ReviewersInformation
-import com.github.luks91.teambucket.model.User
-import com.github.luks91.teambucket.util.childImageView
-import com.github.luks91.teambucket.util.toMMMddDateString
-import com.squareup.picasso.Target
-import org.apache.commons.lang3.StringUtils
+import io.reactivex.functions.Consumer
 
-class ReviewersAdapter(private val context: Context, private val callback: Callback,
-                       private val layoutManager: LinearLayoutManager)
-    : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ReviewersAdapter(private val context: Context, private val avatarLoadRequests: Consumer<AvatarLoadRequest>,
+                       private val pullRequestsLoadRequest: Consumer<IndexedValue<User>>,
+                       private val layoutManager: LinearLayoutManager) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private companion object {
         private const val REVIEWER = 0
@@ -47,12 +38,12 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     }
 
     private val reviewersList = mutableListOf<Reviewer>()
+    private var leadReviewer: User? = null
     private val pullRequestsList = mutableListOf<PullRequest>()
     private var expandedReviewerIndex = Int.MAX_VALUE
     private var selectedReviewer: Reviewer? = null
-    private var serverUrl: String = StringUtils.EMPTY
 
-    inner class DataViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class ReviewersViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val reviewerName: TextView = itemView.findViewById(R.id.reviewerName) as TextView
         private val pullRequestsCount: TextView = itemView.findViewById(R.id.pullRequestsCount) as TextView
         private val reviewerAvatar: ImageView = itemView.findViewById(R.id.reviewerAvatar) as ImageView
@@ -61,7 +52,9 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
 
         fun fillIn(reviewer: Reviewer, fillIndex: Int) {
             this.reviewerName.text = reviewer.user.displayName
-            this.pullRequestsCount.text = context.getString(R.string.reviewing_count, reviewer.reviewsCount)
+            this.pullRequestsCount.text = context.getString(
+                    if (reviewer.user == leadReviewer) R.string.lead_reviewing_count else R.string.reviewing_count,
+                    reviewer.reviewsCount)
 
             if (reviewer.reviewsCount == 0) {
                 expandArrow.visibility = View.GONE
@@ -91,13 +84,13 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
 
                         expandedReviewerIndex = index
                         selectedReviewer = reviewer
-                        callback.retrieveReviewsFor(reviewer.user, index)
+                        pullRequestsLoadRequest.accept(IndexedValue(index, reviewer.user))
                     }
                 }
             }
 
             lazyReviewerWarning.visibility = if (reviewer.isLazy) View.VISIBLE else View.GONE
-            callback.loadImageFor(serverUrl, reviewer.user.avatarUrlSuffix, ImageViewTarget(reviewerAvatar))
+            avatarLoadRequests.accept(AvatarLoadRequest(reviewer.user, ImageViewTarget(reviewerAvatar)))
         }
 
         fun updateItemSelection(reviewer: Reviewer, selectedReviewer: Reviewer) {
@@ -107,67 +100,11 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
         }
     }
 
-    inner class PullRequestViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val authorName: TextView by lazy { itemView.findViewById(R.id.reviewAuthor) as TextView }
-        private val authorAvatar: ImageView by lazy { itemView.findViewById(R.id.authorAvatar) as ImageView }
-        private val pullRequestUpdateDate: TextView by lazy {itemView.findViewById(R.id.pullRequestUpdateDate) as TextView }
-
-        private val reviewers: Array<Pair<ImageView, ImageView>> by lazy {
-            arrayOf(itemView.childImageView(R.id.firstReviewer) to itemView.childImageView(R.id.firstReviewerState),
-                    itemView.childImageView(R.id.secondReviewer) to itemView.childImageView(R.id.secondReviewerState),
-                    itemView.childImageView(R.id.thirdReviewer) to itemView.childImageView(R.id.thirdReviewerState),
-                    itemView.childImageView(R.id.fourthReviewer) to itemView.childImageView(R.id.fourthReviewerState))
-        }
-
-        private val reviewTitle: TextView by lazy { itemView.findViewById(R.id.reviewTitle) as TextView }
-        private val reviewBranch: TextView by lazy { itemView.findViewById(R.id.reviewBranch) as TextView }
-        private val targetBranch: TextView by lazy { itemView.findViewById(R.id.targetBranch) as TextView }
-
-        fun fillIn(pullRequest: PullRequest) {
-            authorName.text = pullRequest.author.user.displayName
-            reviewTitle.text = pullRequest.title
-            reviewBranch.text = pullRequest.sourceBranch.displayId
-            targetBranch.text = pullRequest.targetBranch.displayId
-
-            callback.loadImageFor(serverUrl, pullRequest.author.user.avatarUrlSuffix, ImageViewTarget(authorAvatar))
-
-            val pullRequestReviewers = pullRequest.reviewers
-            for ((index, reviewViews) in reviewers.withIndex()) {
-                if (pullRequestReviewers.size > index) {
-                    val pullRequestMember = pullRequestReviewers[index]
-                    reviewViews.apply {
-                        callback.loadImageFor(serverUrl, pullRequestMember.user.avatarUrlSuffix, ImageViewTarget(first))
-                        first.visibility = View.VISIBLE
-                        second.visibility = View.VISIBLE
-                        second.setImageResource(resourceFromReviewerState(pullRequestMember))
-                    }
-                } else {
-                    reviewViews.apply {
-                        first.visibility = View.GONE
-                        second.visibility = View.GONE
-                    }
-                }
-            }
-
-            pullRequestUpdateDate.text = pullRequest.updatedDate.toMMMddDateString()
-            pullRequestUpdateDate.setTextColor(if (pullRequest.isLazilyReviewed()) context.getColor(R.color.warning_red_text)
-                else context.getColor(R.color.secondary_text))
-        }
-
-        private @DrawableRes fun resourceFromReviewerState(member: PullRequestMember): Int {
-            when (member.status) {
-                APPROVED -> return R.drawable.ic_approved_24dp
-                NEEDS_WORK -> return R.drawable.ic_needs_work_24dp
-                else -> return 0
-            }
-        }
-    }
-
     fun onReviewersReceived(reviewers: ReviewersInformation) {
         reviewersList.clear()
         pullRequestsList.clear()
         expandedReviewerIndex = Int.MAX_VALUE
-        serverUrl = reviewers.serverUrl
+        leadReviewer = reviewers.lead
         reviewersList.addAll(reviewers.reviewers)
         notifyDataSetChanged()
     }
@@ -185,8 +122,9 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
         val inflater = LayoutInflater.from(parent!!.context)
         when(viewType) {
             EMPTY_VIEW -> return object: RecyclerView.ViewHolder(inflater.inflate(R.layout.no_data_view, parent, false)) {}
-            PULL_REQUEST -> return PullRequestViewHolder(inflater.inflate(R.layout.pull_request_card, parent, false))
-            else -> return DataViewHolder(inflater.inflate(R.layout.reviewer_card, parent, false))
+            PULL_REQUEST -> return PullRequestViewHolder(inflater.inflate(R.layout.pull_request_card, parent, false),
+                    avatarLoadRequests)
+            else -> return ReviewersViewHolder(inflater.inflate(R.layout.reviewer_card, parent, false))
         }
     }
 
@@ -205,7 +143,7 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, index: Int, payloads: MutableList<Any>?) {
         if (payloads != null && !payloads.isEmpty()) {
             for (payload in payloads) {
-                if (payload is Reviewer && holder is DataViewHolder) {
+                if (payload is Reviewer && holder is ReviewersViewHolder) {
                     holder.updateItemSelection(
                             reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], payload)
                 }
@@ -217,18 +155,15 @@ class ReviewersAdapter(private val context: Context, private val callback: Callb
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, index: Int) {
         when(holder) {
-            is DataViewHolder -> holder.fillIn(
+            is ReviewersViewHolder -> holder.fillIn(
                     reviewersList[if (index <= expandedReviewerIndex) index else index - pullRequestsList.size], index)
             is PullRequestViewHolder -> holder.fillIn(pullRequestsList[index - expandedReviewerIndex - 1])
         }
     }
 
     override fun getItemCount(): Int {
-        return if (reviewersList.isEmpty()) 1 else reviewersList.size + pullRequestsList.size
-    }
+        reviewersList.withIndex()
 
-    interface Callback {
-        fun retrieveReviewsFor(user: User, index: Int)
-        fun loadImageFor(serverUrl: String, urlPath: String, target: Target)
+        return if (reviewersList.isEmpty()) 1 else reviewersList.size + pullRequestsList.size
     }
 }

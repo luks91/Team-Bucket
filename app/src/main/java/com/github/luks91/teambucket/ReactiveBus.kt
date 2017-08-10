@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket
 
-import com.github.luks91.teambucket.model.Repository
 import com.jakewharton.rxrelay2.PublishRelay
 import com.jakewharton.rxrelay2.Relay
 import io.reactivex.Observable

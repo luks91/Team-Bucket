@@ -14,9 +14,10 @@
 package com.github.luks91.teambucket.main.home
 
 import com.github.luks91.teambucket.main.base.BasePullRequestsView
+import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.User
 import io.reactivex.Observable
 
 interface HomeView: BasePullRequestsView {
-    fun intentShowReviewerPullRequests(): Observable<User>
+    fun onUserPullRequestsProvided(pullRequests: List<PullRequest>)
 }

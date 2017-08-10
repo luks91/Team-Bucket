@@ -31,6 +31,7 @@
     <string name="repositories_choose_header">Select repositories</string>
     <string name="toast_no_network">Cannot connect to the server</string>
     <string name="reviewing_count">Reviewing: %d</string>
+    <string name="lead_reviewing_count">(Lead) Reviewing: %d</string>
     <string name="reviewer_avatar_content_desc">Reviewer\'s avatar</string>
     <string name="expand_reviewer_info_desc">Expand reviewer information</string>
     <string name="suggested_reviewers_header">Suggested Reviewers</string>
@@ -40,4 +41,6 @@
     <string name="no_data_step3">3. Setup the app by clicking on</string>
     <string name="no_data_step4">4. Pull down to refresh</string>
     <string name="coming_soon">Coming soon! :-)</string>
+    <string name="pull_requests_assigned_to_you">%1$d Pull Requests to review</string>
+    <string name="no_pull_requests">You have no Pull Requests assigned</string>
 </resources>

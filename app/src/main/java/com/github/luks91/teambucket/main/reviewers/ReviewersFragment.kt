@@ -18,24 +18,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.github.luks91.teambucket.R
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import com.github.luks91.teambucket.main.base.BasePullRequestsFragment
-import com.github.luks91.teambucket.model.ImageLoadRequest
-import com.github.luks91.teambucket.model.PullRequest
-import com.github.luks91.teambucket.model.ReviewersInformation
-import com.github.luks91.teambucket.model.User
-import com.squareup.picasso.Target
+import com.github.luks91.teambucket.model.*
+import com.jakewharton.rxrelay2.PublishRelay
+import com.jakewharton.rxrelay2.Relay
 import javax.inject.Inject
 
-class ReviewersFragment : BasePullRequestsFragment<ReviewersView, ReviewersPresenter>(), ReviewersView, ReviewersAdapter.Callback {
+class ReviewersFragment : BasePullRequestsFragment<ReviewersView, ReviewersPresenter>(), ReviewersView {
 
-    private val reviewsForUserSubject: PublishSubject<IndexedValue<User>> = PublishSubject.create()
-    private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
+    private val reviewsForUserSubject: Relay<IndexedValue<User>> = PublishRelay.create()
+    private val imageLoadRequests: Relay<AvatarLoadRequest> = PublishRelay.create()
     private val layoutManager by lazy { LinearLayoutManager(context) }
-    private val dataAdapter by lazy { ReviewersAdapter(context, this, layoutManager) }
+    private val dataAdapter by lazy { ReviewersAdapter(context, imageLoadRequests, reviewsForUserSubject, layoutManager) }
 
     @Inject lateinit var reviewersPresenter: ReviewersPresenter
 
@@ -57,14 +53,9 @@ class ReviewersFragment : BasePullRequestsFragment<ReviewersView, ReviewersPrese
 
     override fun onReviewersReceived(reviewers: ReviewersInformation) = dataAdapter.onReviewersReceived(reviewers)
 
-    override fun retrieveReviewsFor(user: User, index: Int) = reviewsForUserSubject.onNext(IndexedValue(index, user))
-
     override fun intentRetrieveReviews() = reviewsForUserSubject
 
     override fun onPullRequestsProvided(reviews: List<IndexedValue<PullRequest>>) = dataAdapter.onPullRequestsProvided(reviews)
 
     override fun intentLoadAvatarImage() = imageLoadRequests
-
-    override fun loadImageFor(serverUrl: String, urlPath: String, target: Target) =
-            imageLoadRequests.onNext(ImageLoadRequest(serverUrl, urlPath, target))
 }

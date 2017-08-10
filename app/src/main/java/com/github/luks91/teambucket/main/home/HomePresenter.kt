@@ -20,19 +20,25 @@ import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.main.base.BasePullRequestsPresenter
 import com.github.luks91.teambucket.persistence.PersistenceProvider
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
-class HomePresenter @Inject constructor(@AppContext context: Context, connectionProvider: ConnectionProvider,
-                                        persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider,
-                                        eventsBus: ReactiveBus)
-    : BasePullRequestsPresenter<HomeView>(context, connectionProvider, persistenceProvider, teamMembersProvider, eventsBus) {
+class HomePresenter @Inject constructor(@AppContext context: Context, private val connectionProvider: ConnectionProvider,
+                                        private val persistenceProvider: PersistenceProvider,
+                                        teamMembersProvider: TeamMembersProvider, eventsBus: ReactiveBus):
+        BasePullRequestsPresenter<HomeView>(context, connectionProvider, persistenceProvider, teamMembersProvider, eventsBus) {
 
     private var disposable = Disposables.empty()
 
     override fun attachView(view: HomeView) {
         super.attachView(view)
-        disposable = view.intentPullToRefresh().subscribe()
+        disposable = connectionProvider.obtainConnection()
+                .switchMap { persistenceProvider.pullRequestsUnderReviewBy(it.userName) }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { view.onUserPullRequestsProvided(it) }
     }
 
     override fun avatarSize(): Int = 256

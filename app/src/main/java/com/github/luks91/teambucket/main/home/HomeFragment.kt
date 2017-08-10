@@ -21,18 +21,17 @@ import android.view.View
 import android.view.ViewGroup
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.main.base.BasePullRequestsFragment
-import com.github.luks91.teambucket.model.ImageLoadRequest
+import com.github.luks91.teambucket.model.AvatarLoadRequest
+import com.github.luks91.teambucket.model.PullRequest
 import com.github.luks91.teambucket.model.ReviewersInformation
-import com.github.luks91.teambucket.model.User
-import com.squareup.picasso.Target
-import io.reactivex.subjects.PublishSubject
+import com.jakewharton.rxrelay2.PublishRelay
+import com.jakewharton.rxrelay2.Relay
 import javax.inject.Inject
 
-class HomeFragment : BasePullRequestsFragment<HomeView, HomePresenter>(), HomeView, HomeAdapter.Callback {
+class HomeFragment : BasePullRequestsFragment<HomeView, HomePresenter>(), HomeView {
 
-    private val dataAdapter by lazy { HomeAdapter(context, this) }
-    private val imageLoadRequests: PublishSubject<ImageLoadRequest> = PublishSubject.create()
-    private val showReviewerPullRequestsRequest: PublishSubject<User> = PublishSubject.create()
+    private val imageLoadRequests: Relay<AvatarLoadRequest> = PublishRelay.create()
+    private val dataAdapter by lazy { HomeAdapter(context, imageLoadRequests) }
     private val layoutManager by lazy { LinearLayoutManager(context) }
 
     @Inject lateinit var homePresenter: HomePresenter
@@ -53,15 +52,10 @@ class HomeFragment : BasePullRequestsFragment<HomeView, HomePresenter>(), HomeVi
 
     override fun createPresenter() = homePresenter
 
-    override fun showPullRequestsFor(user: User) = showReviewerPullRequestsRequest.onNext(user)
-
-    override fun intentShowReviewerPullRequests() = showReviewerPullRequestsRequest
-
     override fun onReviewersReceived(reviewers: ReviewersInformation) = dataAdapter.onReviewersReceived(reviewers)
-
-    override fun loadImageFor(serverUrl: String, urlPath: String, target: Target) =
-            imageLoadRequests.onNext(ImageLoadRequest(serverUrl, urlPath, target))
 
     override fun intentLoadAvatarImage() = imageLoadRequests
 
+    override fun onUserPullRequestsProvided(pullRequests: List<PullRequest>) =
+            dataAdapter.onUserPullRequestsReceived(pullRequests)
 }

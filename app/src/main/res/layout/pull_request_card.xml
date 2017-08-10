@@ -32,6 +32,7 @@
         android:layout_height="@dimen/divider_line_height"
         android:layout_marginStart="@dimen/margin_16dp"
         android:layout_marginEnd="@dimen/margin_16dp"
+        android:id="@+id/card_divider"
         android:background="@color/divider_line_color"/>
 
     <android.support.constraint.ConstraintLayout
