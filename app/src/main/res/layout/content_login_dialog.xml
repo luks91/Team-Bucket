@@ -24,7 +24,6 @@
               android:layout_height="wrap_content"
               android:inputType="textUri"
               android:hint="@string/hint_url"
-              android:text="https://bitbucket.mot-solutions.com"
               android:ems="10"
               android:id="@+id/bitbucketUrl"/>
 
