@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket
 
+import android.support.annotation.StringRes
 import com.jakewharton.rxrelay2.PublishRelay
 import com.jakewharton.rxrelay2.Relay
 import io.reactivex.Observable
@@ -29,7 +30,7 @@ class ReactiveBus @Inject constructor(){
         return relay.ofType(clazz)
     }
 
-    data class EventCredentialsInvalid(val notifier: String)
+    data class EventCredentialsInvalid(val notifier: String, @StringRes val message: Int = Int.MIN_VALUE)
     data class EventRepositoriesMissing(val notifier: String)
     data class EventNoNetworkConnection(val notifier: String)
 

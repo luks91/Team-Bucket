@@ -18,11 +18,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
 import android.util.Base64
+import android.webkit.URLUtil
 import com.facebook.android.crypto.keychain.AndroidConceal
 import com.facebook.android.crypto.keychain.SharedPrefsBackedKeyChain
 import com.facebook.crypto.Crypto
 import com.facebook.crypto.CryptoConfig
 import com.facebook.crypto.Entity
+import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.di.AppPreferences
 import com.github.luks91.teambucket.model.BitbucketConnection
@@ -32,6 +34,7 @@ import com.github.luks91.teambucket.util.edit
 import com.github.luks91.teambucket.util.put
 import com.squareup.moshi.JsonAdapter
 import io.reactivex.Observable
+import io.reactivex.Single
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.Charset
 import javax.inject.Inject
@@ -46,14 +49,28 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
     private val prefKey: String = "avatar_check_sum"
 
     @SuppressLint("ApplySharedPref") //Commit is executed on a background thread.
-    fun obtainConnection(): Observable<BitbucketConnection> {
-        return obtainSecurityCrypto().flatMap { crypto ->
+    fun connections(): Observable<BitbucketConnection> {
+        return obtainSecurityCrypto().switchMap { crypto ->
             Observable.merge(
                     obtainDecryptedCredentials(crypto, credentialsAdapter),
                     eventsBus.receive(BitbucketCredentials::class.java)
-                            .doOnNext { data -> preferences.edit { put(prefKey to encrypt(crypto, data)) }
-                    })
+                            .switchMap { data ->
+                                if (URLUtil.isValidUrl(data.bitBucketUrl)) {
+                                    Observable.just(data)
+                                } else {
+                                    eventsBus.post(ReactiveBus.EventCredentialsInvalid(
+                                            this@ConnectionProvider::class.java.simpleName, R.string.toast_server_url_invalid))
+                                    Observable.never()
+                                }
+                            }
+                            .doOnNext { data -> preferences.edit { put(prefKey to encrypt(crypto, data)) } })
         }.map { credentials -> BitbucketConnection.from(credentials) }
+    }
+
+    fun cachedCredentials(): Single<BitbucketCredentials> {
+        return obtainSecurityCrypto()
+                .switchMap { obtainDecryptedCredentials(it, credentialsAdapter, false) }
+                .first(BitbucketCredentials.EMPTY)
     }
 
     private fun obtainSecurityCrypto(): Observable<Crypto> {
@@ -69,7 +86,8 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
         return Base64.encodeToString(encodedBytes, Base64.DEFAULT)
     }
 
-    private fun obtainDecryptedCredentials(crypto: Crypto, credentialsAdapter: JsonAdapter<BitbucketCredentials>)
+    private fun obtainDecryptedCredentials(crypto: Crypto, credentialsAdapter: JsonAdapter<BitbucketCredentials>,
+                                           notifyError: Boolean = true)
             : Observable<BitbucketCredentials> {
         val encryptedString = preferences.getString(prefKey, StringUtils.EMPTY)
         if (!encryptedString.isEmpty()) {
@@ -81,7 +99,9 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
         }
 
         return Observable.empty<BitbucketCredentials>().doOnSubscribe {
-            eventsBus.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
+            if (notifyError) {
+                eventsBus.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
+            }
         }
     }
 }

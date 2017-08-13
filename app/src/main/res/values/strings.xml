@@ -15,7 +15,7 @@
 
 <resources>
     <string name="app_name">Team Bucket</string>
-    <string name="bitbucket_auth_header">Authenticate with Bitbucket</string>
+    <string name="bitbucket_auth_header">Authenticate with BitBucket</string>
     <string name="hint_url">BitBucket URL</string>
     <string name="hint_username">Username</string>
     <string name="hint_password">Password</string>
@@ -30,6 +30,9 @@
     <string name="projects_choose_header">Select projects</string>
     <string name="repositories_choose_header">Select repositories</string>
     <string name="toast_no_network">Cannot connect to the server</string>
+    <string name="toast_credentials_expired">Username or password are invalid.</string>
+    <string name="toast_cannot_reach_server">Could not reach the server. Please check the URL.</string>
+    <string name="toast_server_url_invalid">BitBucket URL is not valid.</string>
     <string name="reviewing_count">Reviewing: %d</string>
     <string name="lead_reviewing_count">(Lead) Reviewing: %d</string>
     <string name="reviewer_avatar_content_desc">Reviewer\'s avatar</string>

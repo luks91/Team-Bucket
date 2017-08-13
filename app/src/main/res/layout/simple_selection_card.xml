@@ -40,7 +40,7 @@
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
-            tools:text="Szczyglowski Lukasz-KXCQ63"
+            tools:text="Szczyglowski Lukasz-ASD123"
             android:textSize="@dimen/primary_text_size"
             android:layout_height="wrap_content"/>
     </LinearLayout>

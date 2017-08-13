@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.main.reviewers
 
 import android.content.Context
+import android.net.ConnectivityManager
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
@@ -33,7 +34,8 @@ class ReviewersModule {
     @Provides
     internal fun providesReviewersPresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
                                             persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider,
-                                            eventBus: ReactiveBus): ReviewersPresenter {
-        return ReviewersPresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus)
+                                            eventBus: ReactiveBus, connectivityManager: ConnectivityManager): ReviewersPresenter {
+        return ReviewersPresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus,
+                connectivityManager)
     }
 }

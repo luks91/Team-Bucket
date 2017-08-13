@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket.main
 
+import android.net.ConnectivityManager
 import android.support.annotation.StringRes
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.R
@@ -34,13 +35,13 @@ import javax.inject.Inject
 
 class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider,
                                         val persistenceProvider: PersistenceProvider,
-                                        val eventsBus: ReactiveBus) : MvpPresenter<MainView> {
+                                        val eventsBus: ReactiveBus, val connectivityManager: ConnectivityManager)
+    : MvpPresenter<MainView> {
 
     private var disposable = Disposables.empty()
 
     override fun attachView(view: MainView) {
-        val requestUserCredentialsObservable = view.requestUserCredentials().publish().refCount()
-        val connection = connectionProvider.obtainConnection().publish()
+        val connection = connectionProvider.connections().publish()
 
         val projectsSelection = Observable.combineLatest(
                         connection, eventsBus.receive(ReactiveBus.EventRepositoriesMissing::class.java)
@@ -62,14 +63,25 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
 
         disposable = CompositeDisposable(
                 eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
+                        .debounce(500, TimeUnit.MILLISECONDS)
+                        .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .flatMap { requestUserCredentialsObservable }
+                        .filter { it.message > 0 }
+                        .subscribe { view.showErrorNotification(it.message) },
+                eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
+                        .debounce(500, TimeUnit.MILLISECONDS)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .zipWith(eventsBus.receive(BitbucketCredentials::class.java)
+                                        .mergeWith(connectionProvider.cachedCredentials().toObservable())
+                                        .subscribeOn(Schedulers.io()),
+                                BiFunction<Any, BitbucketCredentials, Observable<BitbucketCredentials>> {
+                                    _, previousCredentials -> view.requestUserCredentials(previousCredentials)
+                                })
+                        .switchMap { obs -> obs }
+                        .observeOn(Schedulers.io())
                         .subscribe { credentials -> eventsBus.post(credentials) },
                 persistenceProvider.subscribeRepositoriesPersisting(projectsSelection, repositoriesSelection),
-                eventsBus.receive(ReactiveBus.EventNoNetworkConnection::class.java)
-                        .debounce(100, TimeUnit.MILLISECONDS)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { _ -> view.showNoNetworkNotification() },
                 repositoriesSelection.connect(),
                 projectsSelection.connect(),
                 connection.connect()
@@ -79,7 +91,8 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
     private fun projectSelection(api: BitbucketApi, token: String, view: MainView): Observable<List<Project>> {
         return BitbucketApi.queryPaged { start -> api.getProjects(token, start) }
                 .subscribeOn(Schedulers.io())
-                .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus, MainPresenter::class.java.simpleName))
+                .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
+                        MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
                         persistenceProvider.selectedProjects(sortColumn = "key"),
@@ -113,7 +126,8 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                         BitbucketApi.queryPaged { start -> api.getProjectRepositories(token, key, start) }
                                 .subscribeOn(Schedulers.io())
                     }
-                .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus, MainPresenter::class.java.simpleName))
+                .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
+                        MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
                         persistenceProvider.selectedRepositories(sortColumn = "slug", notifyIfMissing = false),

@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.main.base
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.webkit.URLUtil
 import com.github.luks91.teambucket.connection.ConnectionProvider
@@ -44,7 +45,8 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                             private val connectionProvider: ConnectionProvider,
                             private val persistenceProvider: PersistenceProvider,
                             private val teamMembersProvider: TeamMembersProvider,
-                            private val eventsBus: ReactiveBus) : MvpPresenter<T> {
+                            private val eventsBus: ReactiveBus,
+                            private val connectivityManager: ConnectivityManager) : MvpPresenter<T> {
 
     private var disposable = Disposables.empty()
 
@@ -62,7 +64,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
     private fun pullRequests(view: T): ConnectableObservable<Pair<List<PullRequest>, String>> {
         return Observable.combineLatest(
                 view.intentPullToRefresh().startWith { Object() },
-                connectionProvider.obtainConnection(),
+                connectionProvider.connections(),
                 BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn }
         ).switchMap { (_, serverUrl, api, token) ->
             persistenceProvider.selectedRepositories()
@@ -72,7 +74,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                                     BitbucketApi.queryPaged { start ->
                                         api.getPullRequests(token, project.key, slug, start, avatarSize()) }
                                             .subscribeOn(Schedulers.io())
-                                            .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus,
+                                            .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
                                                     BasePullRequestsPresenter::class.java.simpleName))
                                 }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
                                 .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
@@ -133,7 +135,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
     private fun subscribeImageLoading(view: T): Disposable {
         return view.intentLoadAvatarImage()
                 .withLatestFrom(
-                        connectionProvider.obtainConnection().map { it.serverUrl },
+                        connectionProvider.connections().map { it.serverUrl },
                         BiFunction<AvatarLoadRequest, String, ImageLoadRequest> {
                             (user, target), serverUrl ->
                             ImageLoadRequest(serverUrl, user.avatarUrlSuffix, target)

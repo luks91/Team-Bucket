@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.main.reviewers
 
 import android.content.Context
+import android.net.ConnectivityManager
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.di.AppContext
@@ -28,8 +29,10 @@ import javax.inject.Inject
 
 class ReviewersPresenter @Inject constructor(@AppContext context: Context, connectionProvider: ConnectionProvider,
                                              private val persistenceProvider: PersistenceProvider,
-                                             teamMembersProvider: TeamMembersProvider, eventsBus: ReactiveBus)
-    : BasePullRequestsPresenter<ReviewersView>(context, connectionProvider, persistenceProvider, teamMembersProvider, eventsBus) {
+                                             teamMembersProvider: TeamMembersProvider, eventsBus: ReactiveBus,
+                                             connectivityManager: ConnectivityManager)
+    : BasePullRequestsPresenter<ReviewersView>(context, connectionProvider, persistenceProvider, teamMembersProvider,
+        eventsBus, connectivityManager) {
 
     private var disposable = Disposables.empty()
 
