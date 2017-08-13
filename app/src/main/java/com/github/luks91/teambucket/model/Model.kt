@@ -27,7 +27,9 @@ import java.util.concurrent.TimeUnit
 
 val EMPTY_STRING = ""
 
-data class BitbucketCredentials(val bitBucketUrl: String, val username: String, val password: String) {
+data class BitbucketCredentials(@Json(name = "url") val bitBucketUrl: String,
+                                @Json(name = "username") val username: String,
+                                @Json(name = "password") val password: String) {
     companion object {
         val EMPTY = BitbucketCredentials(StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY)
     }
