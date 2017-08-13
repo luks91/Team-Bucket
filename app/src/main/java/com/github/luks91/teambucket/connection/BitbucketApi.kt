@@ -107,7 +107,8 @@ interface BitbucketApi {
                             eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_credentials_expired))
                             Observable.empty<TData>()
                         } else {
-                            Observable.error(t)
+                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_server_error))
+                            Observable.empty<TData>()
                         }
                     }
                     is SocketException -> {
