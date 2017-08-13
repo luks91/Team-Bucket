@@ -31,6 +31,7 @@
     <string name="repositories_choose_header">Select repositories</string>
     <string name="toast_no_network">Cannot connect to the server</string>
     <string name="toast_credentials_expired">Username or password are invalid.</string>
+    <string name="toast_server_error">Could not obtain correct data from the server. Please check the configuration.</string>
     <string name="toast_cannot_reach_server">Could not reach the server. Please check the URL.</string>
     <string name="toast_server_url_invalid">BitBucket URL is not valid.</string>
     <string name="reviewing_count">Reviewing: %d</string>
