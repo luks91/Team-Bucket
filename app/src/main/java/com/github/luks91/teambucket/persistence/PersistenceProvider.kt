@@ -151,7 +151,9 @@ class PersistenceProvider @Inject constructor(@AppContext context: Context, priv
                             .map { realmPullRequest -> realmPullRequest.toPullRequest() }
                             .toList().toFlowable()
                     }.toObservable()
-        }.subscribeOn(looperScheduler)
+        }
+                .subscribeOn(looperScheduler)
+                .unsubscribeOn(looperScheduler)
     }
 
     fun teamMembersPersisting(teamMembers: Observable<Timed<Map<User, Density>>>): Observable<Any> {

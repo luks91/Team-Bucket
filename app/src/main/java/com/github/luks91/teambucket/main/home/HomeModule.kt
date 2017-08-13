@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.main.home
 
 import android.content.Context
+import android.net.ConnectivityManager
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
@@ -33,7 +34,8 @@ class HomeModule {
     @Provides
     internal fun provideHomePresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
                                             persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider,
-                                            eventBus: ReactiveBus): HomePresenter {
-        return HomePresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus)
+                                            eventBus: ReactiveBus, connectivityManager: ConnectivityManager): HomePresenter {
+        return HomePresenter(context, connectionProvider, persistenceProvider, teamMembersProvider, eventBus,
+                connectivityManager)
     }
 }

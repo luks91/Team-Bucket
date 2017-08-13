@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket.connection
 
+import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.ReactiveBus
 import io.reactivex.Emitter
@@ -29,6 +30,7 @@ import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.util.concurrent.Callable
+import android.net.ConnectivityManager
 
 interface BitbucketApi {
 
@@ -96,12 +98,13 @@ interface BitbucketApi {
                     })
         }
 
-        fun <TData> handleNetworkError(eventsBus: ReactiveBus, sender: String): ((t: Throwable) -> Observable<TData>) {
+        fun <TData> handleNetworkError(connectivityManager: ConnectivityManager,
+                                       eventsBus: ReactiveBus, sender: String): ((t: Throwable) -> Observable<TData>) {
             return { t: Throwable ->
                 when (t) {
                     is HttpException -> {
                         if (t.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender))
+                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_credentials_expired))
                             Observable.empty<TData>()
                         } else {
                             Observable.error(t)
@@ -112,7 +115,11 @@ interface BitbucketApi {
                         Observable.empty<TData>()
                     }
                     is UnknownHostException -> {
-                        eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        if (connectivityManager.activeNetworkInfo?.isConnected ?: false) {
+                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_cannot_reach_server))
+                        } else {
+                            eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
+                        }
                         Observable.empty<TData>()
                     }
                     is InterruptedIOException -> {

@@ -66,14 +66,17 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         findViewById(R.id.mainActivityFab).setOnClickListener { updateRepositoriesIntents.onNext(Object()) }
     }
 
-    override fun requestUserCredentials(): Observable<BitbucketCredentials> {
+    override fun requestUserCredentials(previousCredentials: BitbucketCredentials): Observable<BitbucketCredentials> {
         return Observable.create<BitbucketCredentials>({
             emitter ->
                 val dialog = MaterialDialog.Builder(this)
                     .title(R.string.bitbucket_auth_header)
                     .customView(R.layout.content_login_dialog, false)
                     .positiveText(R.string.confirm)
-                    .cancelListener { emitter.onComplete() }
+                    .cancelListener {
+                        emitter.onNext(previousCredentials)
+                        emitter.onComplete()
+                    }
                     .onPositive { dialog, _ ->
                         dialog.customView!!.apply {
                             val usernameField = this@apply.findViewById(R.id.username) as EditText
@@ -88,6 +91,11 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
                         }
                     }
                     .show()
+
+            dialog.customView!!.apply {
+                (this@apply.findViewById(R.id.username) as EditText).setText(previousCredentials.username)
+                (this@apply.findViewById(R.id.bitbucketUrl) as EditText).setText(previousCredentials.bitBucketUrl)
+            }
 
             emitter.setCancellable {
                 if (dialog.isShowing) {
@@ -110,7 +118,7 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
                             emitter.onComplete()
                         }
                         .cancelListener {
-                            emitter.onNext(listOf())
+                            emitter.onNext(selectedIndices.toList())
                             emitter.onComplete()
                         }
                         .positiveText(R.string.confirm).show()
@@ -123,7 +131,5 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         })
     }
 
-    override fun showNoNetworkNotification() {
-        Toast.makeText(this@MainActivity, R.string.toast_no_network, Toast.LENGTH_SHORT).show()
-    }
+    override fun showErrorNotification(message: Int) = Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
 }

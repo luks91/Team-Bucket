@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket
 
+import android.net.ConnectivityManager
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
@@ -28,7 +29,8 @@ import javax.inject.Inject
 
 class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider,
                                               val persistenceProvider: PersistenceProvider,
-                                              val eventsBus: ReactiveBus) {
+                                              val eventsBus: ReactiveBus,
+                                              val connectivityManager: ConnectivityManager) {
 
     companion object {
         const val PAGES_PER_REPOSITORY = 1L
@@ -54,7 +56,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
 
     private fun calculateTeamMembership(): Observable<Timed<Map<User, Density>>> {
         return Observable.combineLatest(
-                connectionProvider.obtainConnection(),
+                connectionProvider.connections(),
                 persistenceProvider.selectedRepositories(),
                 BiFunction<BitbucketConnection, List<Repository>, Observable<Timed<Map<User, Density>>>> {
                     (userName, _, api, token), repositories ->
@@ -66,7 +68,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                                 }
                                         .subscribeOn(Schedulers.io())
                                         .take(PAGES_PER_REPOSITORY)
-                                        .onErrorResumeNext(BitbucketApi.handleNetworkError(eventsBus,
+                                        .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
                                                 ReviewersPresenter::class.java.simpleName))
                             }.reduce { t1, t2 -> t1 + t2 }.toObservable()
                             .compose(intoTeamMembershipOf(userName))

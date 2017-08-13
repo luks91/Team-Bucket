@@ -16,6 +16,7 @@ package com.github.luks91.teambucket.di
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.model.BitbucketCredentials
@@ -34,47 +35,43 @@ class ApplicationModule {
     @Provides
     @Singleton
     @AppContext
-    fun provideAppContext(application: Application): Context {
-        return application
-    }
+    fun provideAppContext(application: Application): Context = application
 
     @Provides
     @Singleton
     @AppPreferences
-    fun provideAppPreferences(application: Application): SharedPreferences {
-        return application.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-    }
+    fun provideAppPreferences(application: Application): SharedPreferences =
+         application.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
 
     @Provides
     @Singleton
-    fun providePersistenceProvider(@AppContext context: Context, eventsBus: ReactiveBus): PersistenceProvider {
-        return PersistenceProvider(context, eventsBus)
-    }
+    fun providePersistenceProvider(@AppContext context: Context, eventsBus: ReactiveBus): PersistenceProvider =
+         PersistenceProvider(context, eventsBus)
+
+    @Provides
+    @Singleton
+    fun provideConnectivityManager(@AppContext context: Context): ConnectivityManager =
+         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     @Provides
     @Singleton
     fun provideConnectionProvider(@AppContext context: Context, @AppPreferences preferences: SharedPreferences,
                                   credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                  eventsBus: ReactiveBus): ConnectionProvider {
-        return ConnectionProvider(context, preferences, credentialsAdapter, eventsBus)
-    }
+                                  eventsBus: ReactiveBus): ConnectionProvider =
+         ConnectionProvider(context, preferences, credentialsAdapter, eventsBus)
 
     @Provides
     @Singleton
     fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider,
-                                   eventsBus: ReactiveBus): TeamMembersProvider {
-        return TeamMembersProvider(connectionProvider, persistenceProvider, eventsBus)
-    }
+                                   eventsBus: ReactiveBus, connectivityManager: ConnectivityManager): TeamMembersProvider =
+         TeamMembersProvider(connectionProvider, persistenceProvider, eventsBus, connectivityManager)
 
     @Provides
     @Singleton
-    fun provideCredentialsAdapter(): JsonAdapter<BitbucketCredentials> {
-        return Moshi.Builder().build().adapter<BitbucketCredentials>(BitbucketCredentials::class.java)!!
-    }
+    fun provideCredentialsAdapter(): JsonAdapter<BitbucketCredentials> =
+            Moshi.Builder().build().adapter<BitbucketCredentials>(BitbucketCredentials::class.java)
 
     @Provides
     @Singleton
-    fun provideEventsBus(): ReactiveBus {
-        return ReactiveBus()
-    }
+    fun provideEventsBus(): ReactiveBus = ReactiveBus()
 }

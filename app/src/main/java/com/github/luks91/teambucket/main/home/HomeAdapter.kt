@@ -64,7 +64,7 @@ class HomeAdapter(private val context: Context, private val avatarRequestsConsum
         }
     }
 
-    override fun getItemCount() = if (reviewers == ReviewersInformation.EMPTY) 0 else 2 + pullRequests.size
+    override fun getItemCount() = if (reviewers.reviewers.isEmpty()) 1 else 2 + pullRequests.size
 
     override fun getItemViewType(position: Int): Int =
             when {
@@ -106,7 +106,6 @@ class HomeAdapter(private val context: Context, private val avatarRequestsConsum
                             interpolator = BounceInterpolator(0.15, 20.0)
                             startOffset = index * 200L
                         }
-
 
                         avatarRequestsConsumer.accept(AvatarLoadRequest(reviewerUser, ImageViewTarget(first, animation)))
                         second.text = reviewerUser.displayName
