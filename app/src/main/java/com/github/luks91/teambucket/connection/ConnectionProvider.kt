@@ -46,7 +46,7 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
 
     private val codingCharset = Charset.forName("UTF-8")
     private val credentialsEntity = "entity_"
-    private val prefKey: String = "avatar_check_sum"
+    private val prefKey: String = "avatar_check_sum_2"
 
     @SuppressLint("ApplySharedPref") //Commit is executed on a background thread.
     fun connections(): Observable<BitbucketConnection> {
