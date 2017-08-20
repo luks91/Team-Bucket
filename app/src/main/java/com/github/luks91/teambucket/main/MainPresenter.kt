@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket.main
 
-import android.net.ConnectivityManager
 import android.support.annotation.StringRes
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.R
@@ -33,10 +32,8 @@ import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider,
-                                        val persistenceProvider: PersistenceProvider,
-                                        val eventsBus: ReactiveBus, val connectivityManager: ConnectivityManager)
-    : MvpPresenter<MainView> {
+class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider, val persistenceProvider: PersistenceProvider,
+                                        val eventsBus: ReactiveBus) : MvpPresenter<MainView> {
 
     private var disposable = Disposables.empty()
 
@@ -91,8 +88,7 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
     private fun projectSelection(api: BitbucketApi, token: String, view: MainView): Observable<List<Project>> {
         return BitbucketApi.queryPaged { start -> api.getProjects(token, start) }
                 .subscribeOn(Schedulers.io())
-                .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
-                        MainPresenter::class.java.simpleName))
+                .onErrorResumeNext(connectionProvider.handleNetworkError(MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
                         persistenceProvider.selectedProjects(sortColumn = "key"),
@@ -128,8 +124,7 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                         BitbucketApi.queryPaged { start -> api.getProjectRepositories(token, key, start) }
                                 .subscribeOn(Schedulers.io())
                     }
-                .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
-                        MainPresenter::class.java.simpleName))
+                .onErrorResumeNext(connectionProvider.handleNetworkError(MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
                         persistenceProvider.selectedRepositories(sortColumn = "slug", notifyIfMissing = false),

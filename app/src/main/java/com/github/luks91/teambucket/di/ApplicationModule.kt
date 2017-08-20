@@ -22,6 +22,7 @@ import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.model.BitbucketCredentials
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.connection.CredentialsValidator
 import com.github.luks91.teambucket.main.MainActivityComponent
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -55,16 +56,20 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideConnectionProvider(@AppContext context: Context, @AppPreferences preferences: SharedPreferences,
-                                  credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                  eventsBus: ReactiveBus): ConnectionProvider =
-         ConnectionProvider(context, preferences, credentialsAdapter, eventsBus)
+    internal fun provideConnectionProvider(@AppContext context: Context, @AppPreferences preferences: SharedPreferences,
+                                           credentialsAdapter: JsonAdapter<BitbucketCredentials>,
+                                           eventsBus: ReactiveBus, credentialsValidator: CredentialsValidator): ConnectionProvider =
+         ConnectionProvider(context, preferences, credentialsAdapter, credentialsValidator, eventsBus)
 
     @Provides
     @Singleton
-    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider,
-                                   eventsBus: ReactiveBus, connectivityManager: ConnectivityManager): TeamMembersProvider =
-         TeamMembersProvider(connectionProvider, persistenceProvider, eventsBus, connectivityManager)
+    internal fun provideCredentialsValidator(connectivityManager: ConnectivityManager, eventsBus: ReactiveBus): CredentialsValidator =
+            CredentialsValidator(connectivityManager, eventsBus)
+
+    @Provides
+    @Singleton
+    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider):
+            TeamMembersProvider = TeamMembersProvider(connectionProvider, persistenceProvider)
 
     @Provides
     @Singleton

@@ -13,24 +13,16 @@
 
 package com.github.luks91.teambucket.connection
 
-import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.ReactiveBus
 import io.reactivex.Emitter
 import io.reactivex.Observable
 import io.reactivex.functions.BiConsumer
 import io.reactivex.subjects.BehaviorSubject
-import retrofit2.HttpException
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
-import java.io.InterruptedIOException
-import java.net.HttpURLConnection
-import java.net.SocketException
-import java.net.UnknownHostException
 import java.util.concurrent.Callable
-import android.net.ConnectivityManager
 
 interface BitbucketApi {
 
@@ -96,39 +88,6 @@ interface BitbucketApi {
                                     }
                                 }, { error -> emitter.onError(error) })
                     })
-        }
-
-        fun <TData> handleNetworkError(connectivityManager: ConnectivityManager,
-                                       eventsBus: ReactiveBus, sender: String): ((t: Throwable) -> Observable<TData>) {
-            return { t: Throwable ->
-                when (t) {
-                    is HttpException -> {
-                        if (t.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_credentials_expired))
-                            Observable.empty<TData>()
-                        } else {
-                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_server_error))
-                            Observable.empty<TData>()
-                        }
-                    }
-                    is SocketException -> {
-                        eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
-                        Observable.empty<TData>()
-                    }
-                    is UnknownHostException -> {
-                        if (connectivityManager.activeNetworkInfo?.isConnected ?: false) {
-                            eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_cannot_reach_server))
-                        } else {
-                            eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
-                        }
-                        Observable.empty<TData>()
-                    }
-                    is InterruptedIOException -> {
-                        Observable.empty<TData>()
-                    }
-                    else -> Observable.error(t)
-                }
-            }
         }
     }
 }

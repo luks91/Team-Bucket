@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket.connection
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.text.TextUtils
@@ -35,43 +34,42 @@ import com.github.luks91.teambucket.util.put
 import com.squareup.moshi.JsonAdapter
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.schedulers.Schedulers
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-class ConnectionProvider @Inject constructor(@AppContext private val context: Context,
-                                             @AppPreferences private val preferences: SharedPreferences,
-                                             private val credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                             private val eventsBus: ReactiveBus) {
+class ConnectionProvider @Inject internal constructor(@AppContext private val context: Context,
+                                                      @AppPreferences private val preferences: SharedPreferences,
+                                                      private val credentialsAdapter: JsonAdapter<BitbucketCredentials>,
+                                                      private val credentialsValidator: CredentialsValidator,
+                                                      private val eventsBus: ReactiveBus) {
 
     private val codingCharset = Charset.forName("UTF-8")
     private val credentialsEntity = "entity_"
     private val prefKey: String = "avatar_check_sum_2"
+    private val notifyCredentialsInvalid = { eventsBus.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName,
+            R.string.toast_server_or_credentials_invalid)) }
 
-    @SuppressLint("ApplySharedPref") //Commit is executed on a background thread.
-    fun connections(): Observable<BitbucketConnection> {
-        return obtainSecurityCrypto().switchMap { crypto ->
-            Observable.merge(
-                    obtainDecryptedCredentials(crypto, credentialsAdapter),
-                    eventsBus.receive(BitbucketCredentials::class.java)
-                            .switchMap { data ->
-                                if (URLUtil.isValidUrl(data.bitBucketUrl)) {
-                                    Observable.just(data)
-                                } else {
-                                    eventsBus.post(ReactiveBus.EventCredentialsInvalid(
-                                            this@ConnectionProvider::class.java.simpleName, R.string.toast_server_url_invalid))
-                                    Observable.never()
+    private val credentialsObservable =
+            obtainSecurityCrypto().switchMap { crypto ->
+                Observable.merge(
+                        obtainDecryptedCredentials(crypto, credentialsAdapter)
+                                .compose { credentials -> credentialsValidator.neverIfInvalid(credentials, notifyCredentialsInvalid) },
+                        eventsBus.receive(BitbucketCredentials::class.java)
+                                .observeOn(Schedulers.io())
+                                .compose { credentials -> credentialsValidator.neverIfInvalid(credentials, notifyCredentialsInvalid) }
+                                .switchMap { data ->
+                                    if (URLUtil.isValidUrl(data.bitBucketUrl)) {
+                                        Observable.just(data)
+                                    } else {
+                                        eventsBus.post(ReactiveBus.EventCredentialsInvalid(
+                                                this@ConnectionProvider::class.java.simpleName, R.string.toast_server_url_invalid))
+                                        Observable.never()
+                                    }
                                 }
-                            }
-                            .doOnNext { data -> preferences.edit { put(prefKey to encrypt(crypto, data)) } })
-        }.map { credentials -> BitbucketConnection.from(credentials) }
-    }
-
-    fun cachedCredentials(): Single<BitbucketCredentials> {
-        return obtainSecurityCrypto()
-                .switchMap { obtainDecryptedCredentials(it, credentialsAdapter, false) }
-                .first(BitbucketCredentials.EMPTY)
-    }
+                                .doOnNext { data -> preferences.edit { put(prefKey to encrypt(crypto, data)) } })
+            }.subscribeOn(Schedulers.io()).replay(1).refCount()
 
     private fun obtainSecurityCrypto(): Observable<Crypto> {
         return Observable.defer {
@@ -86,9 +84,8 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
         return Base64.encodeToString(encodedBytes, Base64.DEFAULT)
     }
 
-    private fun obtainDecryptedCredentials(crypto: Crypto, credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                           notifyError: Boolean = true)
-            : Observable<BitbucketCredentials> {
+    private fun obtainDecryptedCredentials(crypto: Crypto, credentialsAdapter: JsonAdapter<BitbucketCredentials>):
+            Observable<BitbucketCredentials> {
         val encryptedString = preferences.getString(prefKey, StringUtils.EMPTY)
         if (!encryptedString.isEmpty()) {
             val decodedBytes = crypto.decrypt(Base64.decode(encryptedString, Base64.DEFAULT), Entity.create(credentialsEntity))
@@ -98,10 +95,16 @@ class ConnectionProvider @Inject constructor(@AppContext private val context: Co
             }
         }
 
-        return Observable.empty<BitbucketCredentials>().doOnSubscribe {
-            if (notifyError) {
-                eventsBus.post(ReactiveBus.EventCredentialsInvalid(javaClass.simpleName))
-            }
-        }
+        return Observable.empty()
     }
+
+    fun connections(): Observable<BitbucketConnection> = credentialsObservable
+            .map { credentials -> BitbucketConnection.from(credentials) }
+
+    fun cachedCredentials(): Single<BitbucketCredentials> = obtainSecurityCrypto()
+            .switchMap { obtainDecryptedCredentials(it, credentialsAdapter) }
+            .first(BitbucketCredentials.EMPTY)
+
+    fun <TData> handleNetworkError(sender: String): ((t: Throwable) -> Observable<TData>) =
+            credentialsValidator.handleNetworkError(sender)
 }

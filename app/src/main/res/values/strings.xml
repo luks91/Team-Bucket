@@ -33,6 +33,7 @@
     <string name="toast_credentials_expired">Username or password are invalid.</string>
     <string name="toast_server_error">Could not obtain correct data from the server. Please check the configuration.</string>
     <string name="toast_cannot_reach_server">Could not reach the server. Please check the URL.</string>
+    <string name="toast_server_or_credentials_invalid">Server unreachable or credentials invalid. Try again.</string>
     <string name="toast_server_url_invalid">BitBucket URL is not valid.</string>
     <string name="reviewing_count">Reviewing: %d</string>
     <string name="lead_reviewing_count">(Lead) Reviewing: %d</string>

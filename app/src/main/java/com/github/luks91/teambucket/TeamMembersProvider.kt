@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket
 
-import android.net.ConnectivityManager
 import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
@@ -28,9 +27,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider,
-                                              val persistenceProvider: PersistenceProvider,
-                                              val eventsBus: ReactiveBus,
-                                              val connectivityManager: ConnectivityManager) {
+                                              val persistenceProvider: PersistenceProvider) {
 
     companion object {
         const val PAGES_PER_REPOSITORY = 1L
@@ -68,8 +65,8 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                                 }
                                         .subscribeOn(Schedulers.io())
                                         .take(PAGES_PER_REPOSITORY)
-                                        .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
-                                                ReviewersPresenter::class.java.simpleName))
+                                        .onErrorResumeNext(connectionProvider
+                                                .handleNetworkError(ReviewersPresenter::class.java.simpleName))
                             }.reduce { t1, t2 -> t1 + t2 }.toObservable()
                             .compose(intoTeamMembershipOf(userName))
                             .switchIfEmpty(Observable.just(mapOf()))
