@@ -71,13 +71,13 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
                         .debounce(500, TimeUnit.MILLISECONDS)
                         .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
                         .zipWith(eventsBus.receive(BitbucketCredentials::class.java)
                                         .mergeWith(connectionProvider.cachedCredentials().toObservable())
                                         .subscribeOn(Schedulers.io()),
                                 BiFunction<Any, BitbucketCredentials, Observable<BitbucketCredentials>> {
                                     _, previousCredentials -> view.requestUserCredentials(previousCredentials)
                                 })
+                        .observeOn(AndroidSchedulers.mainThread())
                         .switchMap { obs -> obs }
                         .observeOn(Schedulers.io())
                         .subscribe { credentials -> eventsBus.post(credentials) },
@@ -103,7 +103,9 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                                             .matchSortedWith(localProjects, compareBy<Project> { it.key }),
                                     view, R.string.projects_choose_header, { data -> data.name })
                         }
-                ).concatMap { obs -> obs }
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .concatMap { obs -> obs }
     }
 
     private inline fun <T> requestUserToSelectFrom(resources: MatchedResources<T>, view: MainView, @StringRes headerText: Int,
@@ -138,7 +140,9 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                                             .matchSortedWith(remoteProjects, compareBy<Repository> { it.slug }),
                                     view, R.string.repositories_choose_header, { data -> data.name })
                         }
-                ).concatMap { obs -> obs }
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .concatMap { obs -> obs }
                 .first(listOf<Repository>())
                 .toObservable()
     }
