@@ -14,8 +14,6 @@
 package com.github.luks91.teambucket.main.home
 
 import android.content.Context
-import android.net.ConnectivityManager
-import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.di.AppContext
@@ -28,10 +26,8 @@ import javax.inject.Inject
 
 class HomePresenter @Inject constructor(@AppContext context: Context, private val connectionProvider: ConnectionProvider,
                                         private val persistenceProvider: PersistenceProvider,
-                                        teamMembersProvider: TeamMembersProvider, eventsBus: ReactiveBus,
-                                        connectivityManager: ConnectivityManager):
-        BasePullRequestsPresenter<HomeView>(context, connectionProvider, persistenceProvider, teamMembersProvider, eventsBus,
-                connectivityManager) {
+                                        teamMembersProvider: TeamMembersProvider):
+        BasePullRequestsPresenter<HomeView>(context, connectionProvider, persistenceProvider, teamMembersProvider) {
 
     private var disposable = Disposables.empty()
 

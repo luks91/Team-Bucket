@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket.main
 
-import android.net.ConnectivityManager
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.main.home.HomeComponent
@@ -32,8 +31,8 @@ class MainActivityModule {
 
     @Provides
     internal fun provideMainPresenter(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider,
-                                      eventBus: ReactiveBus, connectivityManager: ConnectivityManager): MainPresenter {
-        return MainPresenter(connectionProvider, persistenceProvider, eventBus, connectivityManager)
+                                      eventBus: ReactiveBus): MainPresenter {
+        return MainPresenter(connectionProvider, persistenceProvider, eventBus)
     }
 
     @Provides

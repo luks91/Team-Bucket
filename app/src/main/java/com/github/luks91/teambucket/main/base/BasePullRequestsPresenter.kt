@@ -14,7 +14,6 @@
 package com.github.luks91.teambucket.main.base
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.webkit.URLUtil
 import com.github.luks91.teambucket.connection.ConnectionProvider
@@ -25,7 +24,6 @@ import com.github.luks91.teambucket.model.*
 import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
-import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.getLeadUser
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
@@ -44,9 +42,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
         @Inject constructor(@AppContext private val context: Context,
                             private val connectionProvider: ConnectionProvider,
                             private val persistenceProvider: PersistenceProvider,
-                            private val teamMembersProvider: TeamMembersProvider,
-                            private val eventsBus: ReactiveBus,
-                            private val connectivityManager: ConnectivityManager) : MvpPresenter<T> {
+                            private val teamMembersProvider: TeamMembersProvider) : MvpPresenter<T> {
 
     private var disposable = Disposables.empty()
 
@@ -74,7 +70,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                                     BitbucketApi.queryPaged { start ->
                                         api.getPullRequests(token, project.key, slug, start, avatarSize()) }
                                             .subscribeOn(Schedulers.io())
-                                            .onErrorResumeNext(BitbucketApi.handleNetworkError(connectivityManager, eventsBus,
+                                            .onErrorResumeNext(connectionProvider.handleNetworkError(
                                                     BasePullRequestsPresenter::class.java.simpleName))
                                 }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
                                 .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
