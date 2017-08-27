@@ -23,4 +23,5 @@ interface MainView : com.hannesdorfmann.mosby3.mvp.MvpView {
     fun requestToSelectFrom(@android.support.annotation.StringRes titleRes: Int, resources: List<String>,
                             selectedIndices: IntArray): io.reactivex.Observable<List<Int>>
     fun intentRepositorySettings(): Observable<Any>
+    fun displayUserName(name: String)
 }

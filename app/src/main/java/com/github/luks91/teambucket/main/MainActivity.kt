@@ -18,6 +18,9 @@ import android.support.annotation.StringRes
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import android.support.v4.view.ViewPager
+import android.support.v7.widget.Toolbar
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.EditText
 import android.widget.Toast
 import com.hannesdorfmann.mosby3.mvp.MvpActivity
@@ -32,6 +35,9 @@ import javax.inject.Inject
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.AndroidInjector
 import io.reactivex.subjects.PublishSubject
+import android.content.Intent
+import android.net.Uri
+
 
 class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSupportFragmentInjector {
 
@@ -64,6 +70,11 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
         }
 
         findViewById(R.id.mainActivityFab).setOnClickListener { updateRepositoriesIntents.onNext(Object()) }
+        (findViewById(R.id.main_toolbar) as Toolbar).apply{
+            setSupportActionBar(this)
+            supportActionBar!!.setDisplayShowTitleEnabled(true)
+            supportActionBar!!.setTitle(R.string.app_name)
+        }
     }
 
     override fun requestUserCredentials(previousCredentials: BitbucketCredentials): Observable<BitbucketCredentials> {
@@ -132,4 +143,42 @@ class MainActivity : MainView, MvpActivity<MainView, MainPresenter>(), HasSuppor
     }
 
     override fun showErrorNotification(message: Int) = Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_info -> {
+                MaterialDialog.Builder(this)
+                        .title(R.string.about)
+                        .items(R.array.copyright)
+                        .onPositive { dialog, _ -> dialog.dismiss() }
+                        .autoDismiss(false)
+                        .itemsCallback { _, _, position, _ ->
+                            val url = resources.getStringArray(R.array.copyright_urls)[position]
+                            if (!url.isNullOrEmpty()) {
+                                startActivity(Intent(Intent.ACTION_VIEW).setData(Uri.parse(url)))
+                            }
+                        }
+                        .itemsLongCallback { _, _, position, _ ->
+                            val magicUrls = resources.getStringArray(R.array.magic_urls)
+                            if (position < magicUrls.size) {
+                                startActivity(Intent(Intent.ACTION_VIEW).setData(Uri.parse(magicUrls[position])))
+                            }
+                            return@itemsLongCallback true
+                        }
+                        .positiveText(R.string.confirm).show()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun displayUserName(name: String) {
+        supportActionBar!!.title = name
+    }
+
 }

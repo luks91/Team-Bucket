@@ -62,8 +62,8 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
                         .debounce(500, TimeUnit.MILLISECONDS)
                         .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
                         .filter { it.message > 0 }
+                        .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { view.showErrorNotification(it.message) },
                 eventsBus.receive(ReactiveBus.EventCredentialsInvalid::class.java)
                         .debounce(500, TimeUnit.MILLISECONDS)
@@ -81,6 +81,12 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 persistenceProvider.subscribeRepositoriesPersisting(projectsSelection, repositoriesSelection),
                 repositoriesSelection.connect(),
                 projectsSelection.connect(),
+                connectionProvider.connections()
+                        .observeOn(Schedulers.io())
+                        .switchMap { (userName, _, api, token) -> api.getUser(token, userName) }
+                        .map { user -> user.displayName }
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { view.displayUserName(it) },
                 connection.connect()
         )
     }

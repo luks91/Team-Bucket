@@ -48,4 +48,46 @@
     <string name="coming_soon">Coming soon! :-)</string>
     <string name="pull_requests_assigned_to_you">%1$d Pull Requests to review</string>
     <string name="no_pull_requests">You have no Pull Requests assigned</string>
+    <string name="show_info">Show info</string>
+
+    <string name="about">About</string>
+    <string-array name="copyright">
+        <item>Team Bucket\nCopyright © 2017-present, Team Bucket Contributors.\n\nLicensed under the Apache License,\nVersion
+            2.0.</item>
+        <item><a href="https://github.com/luks91/Team-Bucket">Source code available on GitHub.</a></item>
+        <item><b>Libraries used in the project:</b></item>
+        <item><a href="https://developer.android.com/topic/libraries/support-library/index.html">Android Support
+            Library</a>\nApache 2.0 License</item>
+        <item><a href="https://kotlinlang.org">Kotlin</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/JakeWharton/RxRelay">RxRelay2</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/facebook/conceal">Conceal, Facebook</a>\nBSD License</item>
+        <item><a href="https://github.com/afollestad/material-dialogs">Material-Dialogs</a>\nThe MIT License (MIT)</item>
+        <item><a href="https://github.com/sockeqwe/mosby">Mosby</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/ReactiveX/RxAndroid">RxAndroid</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/ReactiveX/RxJava">RxJava 2.0</a>\nApache 2.0 License</item>
+        <item><a href="http://square.github.io/picasso/">Picasso</a>\nApache 2.0 License</item>
+        <item><a href="https://commons.apache.org/proper/commons-lang/">Apache Common-Lang</a>\nApache 2.0 License</item>
+        <item><a href="http://square.github.io/retrofit/">Retrofit</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/google/dagger">Dagger</a>\nApache 2.0 License</item>
+    </string-array>
+    <string-array name="copyright_urls">
+        <item/>
+        <item>https://github.com/luks91/Team-Bucket</item>
+        <item/>
+        <item>https://developer.android.com/topic/libraries/support-library/index.html</item>
+        <item>https://kotlinlang.org</item>
+        <item>https://github.com/JakeWharton/RxRelay">RxRelay2</item>
+        <item>https://github.com/facebook/conceal</item>
+        <item>https://github.com/afollestad/material-dialogs</item>
+        <item>https://github.com/sockeqwe/mosby</item>
+        <item>https://github.com/ReactiveX/RxAndroid</item>
+        <item>https://github.com/ReactiveX/RxJava</item>
+        <item>http://square.github.io/picasso/</item>
+        <item>https://commons.apache.org/proper/commons-lang/</item>
+        <item>http://square.github.io/retrofit/</item>
+        <item>https://github.com/google/dagger</item>
+    </string-array>
+    <string-array name="magic_urls">
+        <item><item>https://youtu.be/jI-kpVh6e1U</item></item>
+    </string-array>
 </resources>

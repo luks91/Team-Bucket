@@ -55,16 +55,16 @@ class ConnectionProvider @Inject internal constructor(@AppContext private val co
             obtainSecurityCrypto().switchMap { crypto ->
                 Observable.merge(
                         obtainDecryptedCredentials(crypto, credentialsAdapter)
-                                .compose { credentials -> credentialsValidator.neverIfInvalid(credentials, notifyCredentialsInvalid) },
+                                .compose { credentialsValidator.neverIfInvalid(it, notifyCredentialsInvalid) },
                         eventsBus.receive(BitbucketCredentials::class.java)
                                 .observeOn(Schedulers.io())
-                                .compose { credentials -> credentialsValidator.neverIfInvalid(credentials, notifyCredentialsInvalid) }
+                                .compose { credentialsValidator.neverIfInvalid(it, notifyCredentialsInvalid) }
                                 .switchMap { data ->
                                     if (URLUtil.isValidUrl(data.bitBucketUrl)) {
                                         Observable.just(data)
                                     } else {
                                         eventsBus.post(ReactiveBus.EventCredentialsInvalid(
-                                                this@ConnectionProvider::class.java.simpleName, R.string.toast_server_url_invalid))
+                                                ConnectionProvider::class.java.simpleName, R.string.toast_server_url_invalid))
                                         Observable.never()
                                     }
                                 }
