@@ -161,9 +161,5 @@ class ReviewersAdapter(private val context: Context, private val avatarLoadReque
         }
     }
 
-    override fun getItemCount(): Int {
-        reviewersList.withIndex()
-
-        return if (reviewersList.isEmpty()) 1 else reviewersList.size + pullRequestsList.size
-    }
+    override fun getItemCount(): Int = if (reviewersList.isEmpty()) 1 else reviewersList.size + pullRequestsList.size
 }
