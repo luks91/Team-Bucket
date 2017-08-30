@@ -14,9 +14,7 @@
 package com.github.luks91.teambucket.persistence
 
 import io.reactivex.*
-import io.realm.RealmChangeListener
-import io.realm.RealmModel
-import io.realm.RealmResults
+import io.realm.*
 
 //as of May 29, 2017, Realm does not support RxJava2.0, so below, custom implementation is necessary
 internal fun <T : RealmModel> RealmResults<T>.asFlowable(): Flowable<RealmResults<T>> {
@@ -24,6 +22,15 @@ internal fun <T : RealmModel> RealmResults<T>.asFlowable(): Flowable<RealmResult
         emitter.onNext(this@asFlowable)
         val changeListener = RealmChangeListener<RealmResults<T>> { data -> emitter.onNext(data) }
         this@asFlowable.addChangeListener(changeListener)
-        emitter.setCancellable { this@asFlowable.removeChangeListener(changeListener) }
+        emitter.setCancellable { if (this@asFlowable.isValid) this@asFlowable.removeChangeListener(changeListener) }
     }, BackpressureStrategy.LATEST)
+}
+
+internal fun <T> usingRealm(name: String, scheduler: Scheduler, function: (realm: Realm) -> Observable<T>): Observable<T> {
+    return io.reactivex.Observable.using(
+            { Realm.getInstance(RealmConfiguration.Builder().name(name).deleteRealmIfMigrationNeeded().build()) },
+            { realm -> function.invoke(realm) },
+            { realm -> realm.close() } )
+            .subscribeOn(scheduler)
+            .unsubscribeOn(scheduler)
 }

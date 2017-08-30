@@ -14,6 +14,7 @@
 package com.github.luks91.teambucket.persistence
 
 import com.github.luks91.teambucket.model.*
+import io.reactivex.schedulers.Timed
 import io.realm.RealmList
 import io.realm.RealmModel
 import io.realm.RealmResults
@@ -21,6 +22,7 @@ import io.realm.annotations.LinkingObjects
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
 import org.apache.commons.lang3.StringUtils
+import java.util.concurrent.TimeUnit
 
 //We don't want to expose mutable model outside of this usage. All the modules and streams have to work with mutable
 //model classes specified in .model package. As of Q2 2017, realm does not work with Kotlin data classes.
@@ -53,6 +55,35 @@ internal open class RealmRepository(
         fun from(repository: Repository): RealmRepository {
             return RealmRepository(repository.slug, repository.name, RealmProject.from(repository.project))
         }
+    }
+}
+
+@RealmClass
+internal open class RealmTeam(@PrimaryKey open var timestampMillis: Long = 0,
+                              open var membersList: RealmList<RealmDensifiedUser> = RealmList<RealmDensifiedUser>()) :
+        RealmModel {
+
+    fun toTimedMap(): Timed<Map<User, Density>> {
+        val membersMap = membersList.associateBy ({ it.user.toUser() }, { Density(it.inbound, it.outbound) })
+        return Timed(membersMap, timestampMillis, TimeUnit.MILLISECONDS)
+    }
+
+    companion object {
+        fun from(map: Timed<Map<User, Density>>) = RealmTeam(map.time(),
+                map.value().map { RealmDensifiedUser.from(it.key, it.value) }.toRealmList())
+    }
+
+}
+
+internal fun <T: RealmModel> Iterable<T>.toRealmList(): RealmList<T> = RealmList<T>().apply { addAll(this@toRealmList) }
+
+@RealmClass
+internal open class RealmDensifiedUser(open var user: RealmUser = RealmUser(),
+                                       open var inbound: Int = 0,
+                                       open var outbound: Int = 0) : RealmModel {
+
+    companion object {
+        fun from(user: User, density: Density) = RealmDensifiedUser(RealmUser.from(user), density.inbound, density.outbound)
     }
 }
 

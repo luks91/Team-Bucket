@@ -20,10 +20,12 @@ import android.net.ConnectivityManager
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.model.BitbucketCredentials
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.connection.CredentialsValidator
 import com.github.luks91.teambucket.main.MainActivityComponent
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
+import com.github.luks91.teambucket.persistence.TeamMembersStorage
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -46,8 +48,15 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun providePersistenceProvider(@AppContext context: Context, eventsBus: ReactiveBus): PersistenceProvider =
-         PersistenceProvider(context, eventsBus)
+    fun providePullRequestsStorage(@AppContext context: Context) = PullRequestsStorage(context)
+
+    @Provides
+    @Singleton
+    fun provideTeamMembersStorage(@AppContext context: Context) = TeamMembersStorage(context)
+
+    @Provides
+    @Singleton
+    fun provideRepositoriesStorage(@AppContext context: Context, eventsBus: ReactiveBus) = RepositoriesStorage(context, eventsBus)
 
     @Provides
     @Singleton
@@ -68,8 +77,9 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider):
-            TeamMembersProvider = TeamMembersProvider(connectionProvider, persistenceProvider)
+    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, teamMembersStorage: TeamMembersStorage,
+                                   repositoriesStorage: RepositoriesStorage):
+            TeamMembersProvider = TeamMembersProvider(connectionProvider, teamMembersStorage, repositoriesStorage)
 
     @Provides
     @Singleton

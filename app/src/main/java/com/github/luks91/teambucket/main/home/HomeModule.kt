@@ -17,7 +17,8 @@ import android.content.Context
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.di.AppContext
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import dagger.Module
 import dagger.Provides
 
@@ -25,12 +26,11 @@ import dagger.Provides
 class HomeModule {
 
     @Provides
-    internal fun provideHomeFragmentView(homeFragment: HomeFragment): HomeView {
-        return homeFragment
-    }
+    internal fun provideHomeFragmentView(homeFragment: HomeFragment): HomeView = homeFragment
 
     @Provides
     internal fun provideHomePresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
-                                            persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider):
-            HomePresenter = HomePresenter(context, connectionProvider, persistenceProvider, teamMembersProvider)
+                                      repositoriesStorage: RepositoriesStorage,
+                                      pullRequestsStorage: PullRequestsStorage, teamMembersProvider: TeamMembersProvider) =
+            HomePresenter(context, connectionProvider, repositoriesStorage, pullRequestsStorage, teamMembersProvider)
 }

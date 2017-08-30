@@ -17,7 +17,7 @@ import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.main.home.HomeComponent
 import com.github.luks91.teambucket.main.reviewers.ReviewersComponent
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import dagger.Module
 import dagger.Provides
 
@@ -30,9 +30,9 @@ class MainActivityModule {
     }
 
     @Provides
-    internal fun provideMainPresenter(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider,
+    internal fun provideMainPresenter(connectionProvider: ConnectionProvider, repositoriesStorage: RepositoriesStorage,
                                       eventBus: ReactiveBus): MainPresenter {
-        return MainPresenter(connectionProvider, persistenceProvider, eventBus)
+        return MainPresenter(connectionProvider, repositoriesStorage, eventBus)
     }
 
     @Provides

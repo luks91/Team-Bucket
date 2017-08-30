@@ -17,8 +17,9 @@ import android.content.Context
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.di.AppContext
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
 import com.github.luks91.teambucket.main.base.BasePullRequestsPresenter
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.disposables.Disposables
@@ -26,9 +27,11 @@ import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class ReviewersPresenter @Inject constructor(@AppContext context: Context, connectionProvider: ConnectionProvider,
-                                             private val persistenceProvider: PersistenceProvider,
+                                             repositoriesStorage: RepositoriesStorage,
+                                             private val pullRequestsStorage: PullRequestsStorage,
                                              teamMembersProvider: TeamMembersProvider)
-    : BasePullRequestsPresenter<ReviewersView>(context, connectionProvider, persistenceProvider, teamMembersProvider) {
+    : BasePullRequestsPresenter<ReviewersView>(context, connectionProvider, repositoriesStorage, pullRequestsStorage,
+        teamMembersProvider) {
 
     private var disposable = Disposables.empty()
 
@@ -44,7 +47,7 @@ class ReviewersPresenter @Inject constructor(@AppContext context: Context, conne
 
     private fun subscribeProvidingPullRequests(view: ReviewersView): Disposable =
             view.intentRetrieveReviews()
-                .switchMap { (userIndex, user) -> persistenceProvider.pullRequestsUnderReviewBy(user.slug)
+                .switchMap { (userIndex, user) -> pullRequestsStorage.pullRequestsUnderReviewBy(user.slug)
                         .map { pullRequests -> pullRequests.mapIndexed { i, pr -> IndexedValue(userIndex + 1 + i, pr) } }
                         .first(listOf()).toObservable() //FIXME: Adapter cannot handle live updates ATM.. we need to change that
                 }

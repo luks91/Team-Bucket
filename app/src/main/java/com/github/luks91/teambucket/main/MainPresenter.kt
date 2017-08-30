@@ -17,9 +17,9 @@ import android.support.annotation.StringRes
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.ReactiveBus
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import com.github.luks91.teambucket.util.MatchedResources
 import com.github.luks91.teambucket.util.matchSortedWith
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
@@ -32,7 +32,8 @@ import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider, val persistenceProvider: PersistenceProvider,
+class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvider,
+                                        val repositoriesStorage: RepositoriesStorage,
                                         val eventsBus: ReactiveBus) : MvpPresenter<MainView> {
 
     private var disposable = Disposables.empty()
@@ -78,7 +79,7 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                         .switchMap { obs -> obs }
                         .observeOn(Schedulers.io())
                         .subscribe { credentials -> eventsBus.post(credentials) },
-                persistenceProvider.subscribeRepositoriesPersisting(projectsSelection, repositoriesSelection),
+                repositoriesStorage.subscribeRepositoriesPersisting(projectsSelection, repositoriesSelection),
                 repositoriesSelection.connect(),
                 projectsSelection.connect(),
                 connectionProvider.connections()
@@ -97,7 +98,7 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 .onErrorResumeNext(connectionProvider.handleNetworkError(MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
-                        persistenceProvider.selectedProjects(sortColumn = "key"),
+                        repositoriesStorage.selectedProjects(sortColumn = "key"),
                         BiFunction<List<Project>, List<Project>, Observable<List<Project>>> {
                             remoteProjects, localProjects ->
                             requestUserToSelectFrom(
@@ -133,7 +134,7 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 .onErrorResumeNext(connectionProvider.handleNetworkError(MainPresenter::class.java.simpleName))
                 .reduce { t1, t2 -> t1 + t2 }.toObservable()
                 .withLatestFrom(
-                        persistenceProvider.selectedRepositories(sortColumn = "slug", notifyIfMissing = false),
+                        repositoriesStorage.selectedRepositories(sortColumn = "slug", notifyIfMissing = false),
                         BiFunction<List<Repository>, List<Repository>, Observable<List<Repository>>> {
                             remoteRepositories, remoteProjects ->
                             requestUserToSelectFrom(

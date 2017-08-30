@@ -14,10 +14,11 @@
 package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.connection.ConnectionProvider
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
+import com.github.luks91.teambucket.persistence.TeamMembersStorage
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
@@ -26,8 +27,8 @@ import io.reactivex.schedulers.Timed
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider,
-                                              val persistenceProvider: PersistenceProvider) {
+class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider, val membersStorage: TeamMembersStorage,
+                                              val repositoriesStorage: RepositoriesStorage) {
 
     companion object {
         const val PAGES_PER_REPOSITORY = 1L
@@ -36,15 +37,15 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
     }
 
-    fun teamMembers(refreshTicks: Observable<Any>): Observable<Map<User, Density>> {
-        val remoteMembership = calculateTeamMembership().publish()
-        return refreshTicks.switchMap { _ ->
-            persistenceProvider.teamMembers()
-                    .switchMap { members -> if (members.haveExpired()) remoteMembership.refCount() else Observable.just(members) }
-        }.map { timedMembers -> timedMembers.value() }
+    private val teamMembers = calculateTeamMembership().subscribeOn(Schedulers.io())
+            .doOnNext{ membersStorage.persistTeamMembers(it) }.replay(1).refCount()
 
-            //use mergeWith to bind to subscribe/unsubscribe lifecycle of the upstream observable
-            .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<Map<User, Density>>() })
+    fun teamMembers(refreshTicks: Observable<Any>): Observable<Map<User, Density>> {
+        return refreshTicks.switchMap { _ ->
+            membersStorage.teamMembers()
+                    .first(Timed(emptyMap(), 0, TimeUnit.MILLISECONDS)).toObservable()
+                    .switchMap { members -> if (members.haveExpired()) teamMembers else Observable.just(members) }
+        }.map { timedMembers -> timedMembers.value() }
     }
 
     private fun Timed<Map<User, Density>>.haveExpired(): Boolean {
@@ -54,7 +55,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
     private fun calculateTeamMembership(): Observable<Timed<Map<User, Density>>> {
         return Observable.combineLatest(
                 connectionProvider.connections(),
-                persistenceProvider.selectedRepositories(),
+                repositoriesStorage.selectedRepositories(),
                 BiFunction<BitbucketConnection, List<Repository>, Observable<Timed<Map<User, Density>>>> {
                     (userName, _, api, token), repositories ->
                     return@BiFunction  Observable.fromIterable(repositories)

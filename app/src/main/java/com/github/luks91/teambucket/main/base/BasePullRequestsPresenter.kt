@@ -21,10 +21,11 @@ import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
 import com.github.luks91.teambucket.getLeadUser
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -41,7 +42,8 @@ import javax.inject.Inject
 open class BasePullRequestsPresenter<T : BasePullRequestsView>
         @Inject constructor(@AppContext private val context: Context,
                             private val connectionProvider: ConnectionProvider,
-                            private val persistenceProvider: PersistenceProvider,
+                            private val repositoriesStorage: RepositoriesStorage,
+                            private val pullRequestsStorage: PullRequestsStorage,
                             private val teamMembersProvider: TeamMembersProvider) : MvpPresenter<T> {
 
     private var disposable = Disposables.empty()
@@ -50,7 +52,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
         pullRequests(view).apply {
             disposable = CompositeDisposable(
                     subscribeProvidingReviewers(this@apply, view),
-                    persistenceProvider.pullRequestsPersisting(map { (pullRequests) -> pullRequests }),
+                    pullRequestsStorage.pullRequestsPersisting(map { (pullRequests) -> pullRequests }),
                     connect(),
                     subscribeImageLoading(view)
             )
@@ -63,7 +65,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                 connectionProvider.connections(),
                 BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn }
         ).switchMap { (_, serverUrl, api, token) ->
-            persistenceProvider.selectedRepositories()
+            repositoriesStorage.selectedRepositories()
                     .switchMap { list ->
                         Observable.fromIterable(list)
                                 .flatMap { (slug, _, project) ->
