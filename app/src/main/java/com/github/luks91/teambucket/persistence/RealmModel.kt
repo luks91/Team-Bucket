@@ -43,9 +43,11 @@ internal open class RealmProject(@PrimaryKey open var key: String = EMPTY_STRING
 
 @RealmClass
 internal open class RealmRepository(
-        @PrimaryKey open var slug: String = EMPTY_STRING,
+        open var slug: String = EMPTY_STRING,
         open var name: String = EMPTY_STRING,
         open var project: RealmProject = RealmProject()) : RealmModel {
+
+    @PrimaryKey open var realmId: String = "${project?.key}_$slug"
 
     fun toRepository(): Repository {
         return Repository(slug, name, project.toProject())
@@ -88,19 +90,19 @@ internal open class RealmDensifiedUser(open var user: RealmUser = RealmUser(),
 }
 
 @RealmClass
-internal open class RealmUser(@PrimaryKey open var id: Int = 0,
+internal open class RealmUser(@PrimaryKey open var id: Long = 0,
                               open var name: String = EMPTY_STRING,
                               open var displayName: String = EMPTY_STRING,
                               open var slug: String = EMPTY_STRING,
-                              open var avatarUrlSuffix: String = EMPTY_STRING) : RealmModel {
+                              open var avatarUrlSuffix: String? = EMPTY_STRING) : RealmModel {
 
     fun toUser(): User {
-        return User(id, name, displayName, slug, avatarUrlSuffix)
+        return User(id, name, displayName, slug, avatarUrlSuffix.orEmpty())
     }
 
     companion object Factory {
         fun from(user: User): RealmUser {
-            return RealmUser(user.id, user.name, user.displayName, user.slug, user.avatarUrlSuffix)
+            return RealmUser(user.id, user.name, user.displayName, user.slug, user.avatarUrlSuffix.orEmpty())
         }
     }
 }
@@ -124,22 +126,24 @@ internal open class RealmPullRequestMember(open var user: RealmUser = RealmUser(
 }
 
 @RealmClass
-internal open class RealmGitReference(open var displayId: String = StringUtils.EMPTY,
-                                      open var latestCommit: String = StringUtils.EMPTY): RealmModel {
+internal open class RealmGitReference(@PrimaryKey open var displayId: String = StringUtils.EMPTY,
+                                      open var latestCommit: String = StringUtils.EMPTY,
+                                      open var repository: RealmRepository = RealmRepository()): RealmModel {
 
     fun toGitReference(): GitReference {
-        return GitReference(displayId, latestCommit)
+        return GitReference(displayId, latestCommit, repository.toRepository())
     }
 
     companion object Factory {
         fun from(gitReference: GitReference): RealmGitReference {
-            return RealmGitReference(gitReference.displayId, gitReference.latestCommit)
+            return RealmGitReference(gitReference.displayId, gitReference.latestCommit,
+                    RealmRepository.from(gitReference.repository))
         }
     }
 }
 
 @RealmClass
-internal open class RealmPullRequest(@PrimaryKey open var id: Long = 0,
+internal open class RealmPullRequest(open var id: Long = 0,
                                      open var title: String = EMPTY_STRING,
                                      open var createdDate: Long = 0L,
                                      open var updatedDate: Long = 0L,
@@ -148,6 +152,8 @@ internal open class RealmPullRequest(@PrimaryKey open var id: Long = 0,
                                      open var state: String = EMPTY_STRING,
                                      open var sourceBranch: RealmGitReference = RealmGitReference(),
                                      open var targetBranch: RealmGitReference = RealmGitReference()) : RealmModel {
+
+    @PrimaryKey open var realmId: String = "${id}_${sourceBranch?.repository?.slug}_${sourceBranch?.repository?.project?.key}"
 
     fun toPullRequest(): PullRequest {
         return PullRequest(id, title, createdDate, updatedDate, author.toPullRequestMember(),

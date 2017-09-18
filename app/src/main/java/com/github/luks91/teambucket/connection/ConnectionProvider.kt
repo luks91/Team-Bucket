@@ -35,6 +35,7 @@ import com.squareup.moshi.JsonAdapter
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import okhttp3.OkHttpClient
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.Charset
 import javax.inject.Inject
@@ -43,7 +44,8 @@ class ConnectionProvider @Inject internal constructor(@AppContext private val co
                                                       @AppPreferences private val preferences: SharedPreferences,
                                                       private val credentialsAdapter: JsonAdapter<BitbucketCredentials>,
                                                       private val credentialsValidator: CredentialsValidator,
-                                                      private val eventsBus: ReactiveBus) {
+                                                      private val eventsBus: ReactiveBus,
+                                                      private val httpClient: OkHttpClient) {
 
     private val codingCharset = Charset.forName("UTF-8")
     private val credentialsEntity = "entity_"
@@ -99,7 +101,7 @@ class ConnectionProvider @Inject internal constructor(@AppContext private val co
     }
 
     fun connections(): Observable<BitbucketConnection> = credentialsObservable
-            .map { credentials -> BitbucketConnection.from(credentials) }
+            .map { credentials -> BitbucketConnection.from(credentials, httpClient) }
 
     fun cachedCredentials(): Single<BitbucketCredentials> = obtainSecurityCrypto()
             .switchMap { obtainDecryptedCredentials(it, credentialsAdapter) }

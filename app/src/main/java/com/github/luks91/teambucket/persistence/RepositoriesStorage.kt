@@ -13,26 +13,19 @@
 
 package com.github.luks91.teambucket.persistence
 
-import android.content.Context
 import com.github.luks91.teambucket.ReactiveBus
-import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.Project
 import com.github.luks91.teambucket.model.Repository
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
-import io.realm.Realm
 import io.realm.RealmModel
 import io.realm.RealmQuery
 
-class RepositoriesStorage(@AppContext context: Context, private val eventsBus: ReactiveBus) {
+class RepositoriesStorage(private val eventsBus: ReactiveBus) {
     private val scheduler by RealmSchedulerHolder
     companion object {
-        const val REPOSITORIES_REALM = "projects_realm"
-    }
-
-    init {
-        Realm.init(context)
+        const val REPOSITORIES_REALM = "projects.realm"
     }
 
     fun selectedRepositories(sortColumn: String = "slug", notifyIfMissing: Boolean = true): Observable<List<Repository>> {

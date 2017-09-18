@@ -30,6 +30,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module(subcomponents = arrayOf(MainActivityComponent::class))
@@ -48,7 +49,7 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun providePullRequestsStorage(@AppContext context: Context) = PullRequestsStorage(context)
+    fun providePullRequestsStorage() = PullRequestsStorage()
 
     @Provides
     @Singleton
@@ -56,7 +57,7 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideRepositoriesStorage(@AppContext context: Context, eventsBus: ReactiveBus) = RepositoriesStorage(context, eventsBus)
+    fun provideRepositoriesStorage(eventsBus: ReactiveBus) = RepositoriesStorage(eventsBus)
 
     @Provides
     @Singleton
@@ -67,13 +68,15 @@ class ApplicationModule {
     @Singleton
     internal fun provideConnectionProvider(@AppContext context: Context, @AppPreferences preferences: SharedPreferences,
                                            credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                           eventsBus: ReactiveBus, credentialsValidator: CredentialsValidator): ConnectionProvider =
-         ConnectionProvider(context, preferences, credentialsAdapter, credentialsValidator, eventsBus)
+                                           eventsBus: ReactiveBus, credentialsValidator: CredentialsValidator,
+                                           httpClient: OkHttpClient): ConnectionProvider =
+         ConnectionProvider(context, preferences, credentialsAdapter, credentialsValidator, eventsBus, httpClient)
 
     @Provides
     @Singleton
-    internal fun provideCredentialsValidator(connectivityManager: ConnectivityManager, eventsBus: ReactiveBus): CredentialsValidator =
-            CredentialsValidator(connectivityManager, eventsBus)
+    internal fun provideCredentialsValidator(connectivityManager: ConnectivityManager, eventsBus: ReactiveBus,
+                                             httpClient: OkHttpClient): CredentialsValidator =
+            CredentialsValidator(connectivityManager, eventsBus, httpClient)
 
     @Provides
     @Singleton

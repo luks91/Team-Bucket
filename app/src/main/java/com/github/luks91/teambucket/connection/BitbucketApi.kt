@@ -34,8 +34,19 @@ interface BitbucketApi {
             @Query("start") start: Int,
             @Query("limit") limit: Int = BitbucketApi.PAGE_SIZE,
             @PullRequestStatus @Query("state") status: String = STATUS_OPEN,
-            @Query("avatarSize") avatarSize: Int = 92
+            @Query("avatarSize") avatarSize: Int = 92,
+            @Order @Query("order") order: String = NEWEST
     ): Observable<PagedResponse<PullRequest>>
+
+    @GET("/rest/api/1.0/projects/{projectName}/repos/{slug}/pull-requests/{id}/activities")
+    fun getPullRequestActivities(
+            @Header("Authorization") token: String,
+            @Path("projectName") projectName: String,
+            @Path("slug") slug: String,
+            @Path("id") pullRequestId: Long,
+            @Query("start") start: Int,
+            @Query("limit") limit: Int = BitbucketApi.PAGE_SIZE
+    ): Observable<PagedResponse<PullRequestActivity>>
 
     @GET("/rest/api/1.0/projects/{projectName}/repos/{slug}/participants")
     fun getRepositoryParticipants(

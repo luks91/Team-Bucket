@@ -3,13 +3,14 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+        google()
+
     }
     project.ext {
         kotlinVersion = '1.1.2-5'
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta6'
         classpath 'me.tatarka:gradle-retrolambda:3.6.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "io.realm:realm-gradle-plugin:3.5.0"
@@ -24,6 +25,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url 'https://maven.google.com' }
         maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+        maven { url 'https://github.com/uPhyca/stetho-realm/raw/master/maven-repo' }
     }
 }
 

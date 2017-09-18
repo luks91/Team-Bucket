@@ -17,11 +17,12 @@ import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.main.home.HomeComponent
 import com.github.luks91.teambucket.main.reviewers.ReviewersComponent
+import com.github.luks91.teambucket.main.statistics.StatisticsComponent
 import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import dagger.Module
 import dagger.Provides
 
-@Module(subcomponents = arrayOf(ReviewersComponent::class, HomeComponent::class))
+@Module(subcomponents = arrayOf(ReviewersComponent::class, HomeComponent::class, StatisticsComponent::class))
 class MainActivityModule {
 
     @Provides

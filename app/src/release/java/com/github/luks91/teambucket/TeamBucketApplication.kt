@@ -18,6 +18,7 @@ import dagger.android.HasActivityInjector
 import android.app.Activity
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
+import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 class TeamBucketApplication : android.app.Application(), HasActivityInjector {
@@ -28,6 +29,7 @@ class TeamBucketApplication : android.app.Application(), HasActivityInjector {
         super.onCreate()
         DaggerApplicationComponent.builder()
                 .application(this)
+                .client(OkHttpClient.Builder().build())
                 .build().inject(this)
     }
 

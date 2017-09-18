@@ -20,7 +20,7 @@ import android.support.v4.app.FragmentStatePagerAdapter
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.main.home.HomeFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
-import com.github.luks91.teambucket.main.statistics.StatisticsFragment
+import com.github.luks91.teambucket.main.statistics.load.StatisticsLoadFragment
 
 class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Resources)
     : FragmentStatePagerAdapter(fragmentManager) {
@@ -58,7 +58,7 @@ class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Res
         },
         STATISTICS {
             override fun getItem(): Fragment {
-                return StatisticsFragment.newInstance()
+                return StatisticsLoadFragment.newInstance()
             }
 
             override fun getTitle(res: Resources): CharSequence {

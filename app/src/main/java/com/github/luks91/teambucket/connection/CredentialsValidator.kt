@@ -19,13 +19,15 @@ import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.model.BitbucketConnection
 import com.github.luks91.teambucket.model.BitbucketCredentials
 import io.reactivex.Observable
+import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import java.io.InterruptedIOException
 import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
 
-internal class CredentialsValidator(val connectivityManager: ConnectivityManager, val eventsBus: ReactiveBus) {
+internal class CredentialsValidator(val connectivityManager: ConnectivityManager, val eventsBus: ReactiveBus,
+                                    val okHttpClient: OkHttpClient) {
 
     fun neverIfInvalid(credentials: Observable<BitbucketCredentials>, onInvalid: () -> Unit): Observable<BitbucketCredentials> =
             credentials
@@ -33,7 +35,7 @@ internal class CredentialsValidator(val connectivityManager: ConnectivityManager
                         onInvalid()
                         Observable.never<BitbucketCredentials>()
                     }.switchMap { credentials ->
-                        val (userName, _, api, token) = BitbucketConnection.from(credentials)
+                        val (userName, _, api, token) = BitbucketConnection.from(credentials, okHttpClient)
                         api.getUser(token, userName)
                                 .onErrorResumeNext { _: Throwable -> Observable.empty() }
                                 .map { _ -> credentials }

@@ -15,24 +15,34 @@
 
 <android.support.constraint.ConstraintLayout xmlns:card_view="http://schemas.android.com/apk/res-auto"
                                              xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:tools="http://schemas.android.com/tools"
                                              android:id="@+id/reviewerConstraintLayout"
                                              android:gravity="center_vertical"
                                              android:orientation="vertical"
                                              android:layout_width="match_parent"
                                              android:layout_height="match_parent">
 
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/statisticsLoadProgressBar"
+        android:layout_marginBottom="@dimen/margin_8dp"
+        card_view:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/margin_8dp"
+        card_view:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/margin_16dp"
+        card_view:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="@dimen/margin_16dp"
+        card_view:layout_constraintBottom_toBottomOf="parent"/>
+
     <TextView
-        android:text="@string/coming_soon"
+        tools:text="10/100"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/noDataHeaderText"
-        android:textColor="@color/primary_text"
-        android:textSize="@dimen/primary_text_size"
-        card_view:layout_constraintTop_toTopOf="parent"
-        card_view:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="@dimen/margin_8dp"
+        android:id="@+id/progressValue"
+        card_view:layout_constraintTop_toBottomOf="@+id/statisticsLoadProgressBar"
         card_view:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="@dimen/margin_8dp"
-        card_view:layout_constraintBottom_toTopOf="parent"/>
+        android:layout_marginEnd="@dimen/margin_16dp"/>
 
 </android.support.constraint.ConstraintLayout>

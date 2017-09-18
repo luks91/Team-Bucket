@@ -18,6 +18,8 @@ import com.github.luks91.teambucket.main.home.HomeComponent
 import com.github.luks91.teambucket.main.home.HomeFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersComponent
+import com.github.luks91.teambucket.main.statistics.StatisticsComponent
+import com.github.luks91.teambucket.main.statistics.load.StatisticsLoadFragment
 import dagger.android.AndroidInjector
 import dagger.multibindings.IntoMap
 import dagger.Binds
@@ -37,5 +39,11 @@ abstract class MainFragmentsProvider {
     @IntoMap
     @FragmentKey(ReviewersFragment::class)
     internal abstract fun provideReviewersFragmentFactory(builder: ReviewersComponent.Builder):
+            AndroidInjector.Factory<out Fragment>
+
+    @Binds
+    @IntoMap
+    @FragmentKey(StatisticsLoadFragment::class)
+    internal abstract fun provideStatisticsFragmentFactory(builder: StatisticsComponent.Builder):
             AndroidInjector.Factory<out Fragment>
 }

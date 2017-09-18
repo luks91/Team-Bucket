@@ -13,23 +13,16 @@
 
 package com.github.luks91.teambucket.persistence
 
-import android.content.Context
-import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.*
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
-import io.realm.Realm
 import javax.inject.Inject
 
-class PullRequestsStorage @Inject constructor(@AppContext context: Context) {
+class PullRequestsStorage @Inject constructor() {
     private val scheduler by RealmSchedulerHolder
     companion object Holder {
-        const val PULL_REQUESTS_REALM = "pull_requests_realm"
-    }
-
-    init {
-        Realm.init(context)
+        const val PULL_REQUESTS_REALM = "pull_requests.realm"
     }
 
     fun pullRequestsPersisting(pullRequests: Observable<List<PullRequest>>): Disposable {
