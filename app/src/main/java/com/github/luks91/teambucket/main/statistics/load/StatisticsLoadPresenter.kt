@@ -48,7 +48,7 @@ class StatisticsLoadPresenter @Inject constructor(private val connectionProvider
                                     api.getPullRequests(token, project.key, slug, start, status = STATUS_ALL) }
                                         .concatMapIterable { it }
                                         .filter { it.isWithinTeam(userSlug, teamMembers) }
-                                        .takeWhile { it.isCreatedNoLongerThanAgo(10, TimeUnit.DAYS) }
+                                        .takeWhile { it.isCreatedNoLongerThanAgo(statisticsStorage.timeToRefreshFor(project.key, slug)) }
                                         .doOnNext { view.onPullRequestDetected() }
                                         .subscribeOn(Schedulers.computation())
                                         .onErrorResumeNext(connectionProvider.handleNetworkError(
@@ -71,8 +71,8 @@ class StatisticsLoadPresenter @Inject constructor(private val connectionProvider
         disposable = statisticsStorage.subscribePersistingStatistics(pullRequests)
     }
 
-    private fun PullRequest.isCreatedNoLongerThanAgo(value: Long, unit: TimeUnit) =
-            this.createdDate >= System.currentTimeMillis() - unit.toMillis(value)
+    private fun PullRequest.isCreatedNoLongerThanAgo(value: Pair<Long, TimeUnit>) =
+            this.createdDate >= System.currentTimeMillis() - value.second.toMillis(value.first)
 
     private fun PullRequest.isWithinTeam(userSlug: String, teamMembersIds: Set<String>) =
             (userSlug == author.user.slug || teamMembersIds.contains(author.user.slug))

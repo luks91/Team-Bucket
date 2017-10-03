@@ -70,8 +70,8 @@ class StatisticsLoadFragment : MvpFragment<StatisticsLoadView, StatisticsLoadPre
     }
 
     private fun updateProgress() {
-        loadProgressBar.progress = if (pullRequestsCount == 0) 0 else (100.0 * completedPullRequestsCount / pullRequestsCount)
-                .toInt()
+        loadProgressBar.progress = if (pullRequestsCount == 0) 0
+            else (100.0 * completedPullRequestsCount / pullRequestsCount).toInt()
         progressText.text = "$completedPullRequestsCount/$pullRequestsCount"
     }
 
