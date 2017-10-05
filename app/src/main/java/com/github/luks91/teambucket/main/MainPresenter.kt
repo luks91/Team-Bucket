@@ -84,7 +84,8 @@ class MainPresenter @Inject constructor(val connectionProvider: ConnectionProvid
                 projectsSelection.connect(),
                 connectionProvider.connections()
                         .observeOn(Schedulers.io())
-                        .switchMap { (userName, _, api, token) -> api.getUser(token, userName) }
+                        .switchMap { (userName, _, api, token) -> api.getUser(token, userName)
+                                .onErrorResumeNext { _: Throwable -> Observable.empty<User>() } }
                         .map { user -> user.displayName }
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { view.displayUserName(it) },

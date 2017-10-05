@@ -35,6 +35,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         const val MINIMUM_USER_OCCURRENCES = 2
         const val PAGE_LIMIT = 20
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
+        const val MEMBERSHIP_PRS_COUNT = 25
     }
 
     private val teamMembers = calculateTeamMembership().subscribeOn(Schedulers.io())
@@ -80,7 +81,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         return ObservableTransformer { upstream ->
             upstream.map { pullRequests ->
                 val densitiesMap = mutableMapOf<User, MutableDensity>()
-                for (pullRequest in pullRequests) {
+                for (pullRequest in pullRequests.sortedByDescending { it.createdDate }.take(MEMBERSHIP_PRS_COUNT)) {
                     val author = pullRequest.author.user
                     val reviewers = pullRequest.reviewers.map { it.user }
                     //if current user is the author, add all the other reviewers
@@ -120,7 +121,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
     private class MutableDensity(var inbound: Int = 0, var outbound: Int = 0)
 }
 
-fun Map<User, Density>.getLeadUser(): User? {
+fun Map<User, Density>.getLeadUser(pullRequests: List<PullRequest>): User? {
     var leadParam = 0.0
     var leadUser: User? = null
     for ((user, density) in this) {
@@ -131,5 +132,5 @@ fun Map<User, Density>.getLeadUser(): User? {
         }
     }
 
-    return if (leadParam > 0.75 * TeamMembersProvider.PAGE_LIMIT * TeamMembersProvider.PAGES_PER_REPOSITORY) leadUser else null
+    return if (leadParam > 0.75 * Math.min(TeamMembersProvider.MEMBERSHIP_PRS_COUNT, pullRequests.size)) leadUser else null
 }

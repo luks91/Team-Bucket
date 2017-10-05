@@ -48,6 +48,10 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
 
     private var disposable = Disposables.empty()
 
+    companion object {
+        @JvmStatic val NULL_PULL_REQUESTS = listOf<PullRequest>()
+    }
+
     override fun attachView(view: T) {
         pullRequests(view).apply {
             disposable = CompositeDisposable(
@@ -74,8 +78,10 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                                             .subscribeOn(Schedulers.io())
                                             .onErrorResumeNext(connectionProvider.handleNetworkError(
                                                     BasePullRequestsPresenter::class.java.simpleName))
-                                }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
-                                .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
+                                }.reduce { t1, t2 -> t1 + t2 }.map { it to serverUrl }.toObservable()
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnComplete { view.onLoadingCompleted() }
+                                .switchIfEmpty(Observable.just(NULL_PULL_REQUESTS to serverUrl))
                     }
         }
                 .doOnSubscribe { view.onSelfLoadingStarted() }
@@ -86,15 +92,17 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
 
     private fun subscribeProvidingReviewers(pullRequests: ConnectableObservable<Pair<List<PullRequest>, String>>,
                                             view: T): Disposable {
-        return Observable.zip(
+        return Observable.combineLatest(
                 pullRequests,
                 teamMembersProvider.teamMembers(view.intentPullToRefresh().startWith { Object() }),
                 BiFunction<Pair<List<PullRequest>, String>, Map<User, Density>, ReviewersInformation> {
                     (pullRequests, serverUrl), team ->
-                    reviewersInformationFrom(team, pullRequests, serverUrl)
+                    if (pullRequests != NULL_PULL_REQUESTS)
+                        reviewersInformationFrom(team, pullRequests, serverUrl)
+                    else
+                        reviewersInformationFrom(emptyMap(), pullRequests, serverUrl)
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { view.onLoadingCompleted() }
                 .subscribe { prCount -> view.onReviewersReceived(prCount) }
     }
 
@@ -121,7 +129,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                     isLazy = lazyReviewers.contains(key)))
         }
 
-        val leadUser = teamMembers.getLeadUser()
+        val leadUser = teamMembers.getLeadUser(pullRequests)
         return ReviewersInformation(
                 returnList.sortedWith(compareBy({ it.user != leadUser }, { it.reviewsCount }, { it.user.displayName })),
                 returnList.sortedWith(compareBy({ it.user != leadUser },

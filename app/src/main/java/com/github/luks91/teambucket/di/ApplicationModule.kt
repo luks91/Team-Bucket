@@ -74,9 +74,8 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    internal fun provideCredentialsValidator(connectivityManager: ConnectivityManager, eventsBus: ReactiveBus,
-                                             httpClient: OkHttpClient): CredentialsValidator =
-            CredentialsValidator(connectivityManager, eventsBus, httpClient)
+    internal fun provideCredentialsValidator(eventsBus: ReactiveBus, httpClient: OkHttpClient): CredentialsValidator =
+            CredentialsValidator(eventsBus, httpClient)
 
     @Provides
     @Singleton

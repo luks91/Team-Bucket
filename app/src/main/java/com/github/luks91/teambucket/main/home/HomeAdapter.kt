@@ -102,15 +102,8 @@ class HomeAdapter(private val context: Context, private val avatarRequestsConsum
                         val reviewerUser = preferredReviewers[index].user
                         first.visibility = View.VISIBLE
                         second.visibility = View.VISIBLE
-                        val animation = AnimationUtils.loadAnimation(context, R.anim.bounce).apply {
-                            interpolator = BounceInterpolator(0.15, 20.0)
-                            startOffset = index * 200L
-                        }
-
-                        avatarRequestsConsumer.accept(AvatarLoadRequest(reviewerUser, ImageViewTarget(first, animation)))
+                        avatarRequestsConsumer.accept(AvatarLoadRequest(reviewerUser, ImageViewTarget(first)))
                         second.text = reviewerUser.displayName
-                        second.alpha = 0f
-                        second.animate().alpha(1f).setStartDelay(index * 200L).start()
                     }
                 }
 

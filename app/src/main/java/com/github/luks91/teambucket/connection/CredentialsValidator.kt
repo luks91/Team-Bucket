@@ -13,7 +13,6 @@
 
 package com.github.luks91.teambucket.connection
 
-import android.net.ConnectivityManager
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.model.BitbucketConnection
@@ -26,20 +25,23 @@ import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.UnknownHostException
 
-internal class CredentialsValidator(val connectivityManager: ConnectivityManager, val eventsBus: ReactiveBus,
-                                    val okHttpClient: OkHttpClient) {
+internal class CredentialsValidator(private val eventsBus: ReactiveBus, private val okHttpClient: OkHttpClient) {
 
     fun neverIfInvalid(credentials: Observable<BitbucketCredentials>, onInvalid: () -> Unit): Observable<BitbucketCredentials> =
             credentials
                     .switchIfEmpty {
                         onInvalid()
                         Observable.never<BitbucketCredentials>()
-                    }.switchMap { credentials ->
-                        val (userName, _, api, token) = BitbucketConnection.from(credentials, okHttpClient)
+                    }.switchMap { secrets ->
+                        val (userName, _, api, token) = BitbucketConnection.from(secrets, okHttpClient)
                         api.getUser(token, userName)
-                                .onErrorResumeNext { _: Throwable -> Observable.empty() }
-                                .map { _ -> credentials }
-                                .switchIfEmpty(Observable.never<BitbucketCredentials>().doOnSubscribe { onInvalid() })
+                                .map { _ -> secrets }
+                                .onErrorResumeNext { error: Throwable ->
+                                    if (error is HttpException && error.code() == HttpURLConnection.HTTP_UNAUTHORIZED)
+                                        Observable.never<BitbucketCredentials>().doOnSubscribe { onInvalid() }
+                                    else
+                                        Observable.just(secrets)
+                                }
                     }
 
     fun <TData> handleNetworkError(sender: String): ((t: Throwable) -> Observable<TData>) {
@@ -59,11 +61,7 @@ internal class CredentialsValidator(val connectivityManager: ConnectivityManager
                     Observable.empty<TData>()
                 }
                 is UnknownHostException -> {
-                    if (connectivityManager.activeNetworkInfo?.isConnected ?: false) {
-                        eventsBus.post(ReactiveBus.EventCredentialsInvalid(sender, R.string.toast_cannot_reach_server))
-                    } else {
-                        eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
-                    }
+                    eventsBus.post(ReactiveBus.EventNoNetworkConnection(sender))
                     Observable.empty<TData>()
                 }
                 is InterruptedIOException -> {
