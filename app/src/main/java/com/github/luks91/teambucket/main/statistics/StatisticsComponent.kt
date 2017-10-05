@@ -13,21 +13,13 @@
 
 package com.github.luks91.teambucket.main.statistics
 
-import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.github.luks91.teambucket.R
+import com.github.luks91.teambucket.main.statistics.load.StatisticsLoadFragment
+import dagger.Subcomponent
+import dagger.android.AndroidInjector
 
-class StatisticsFragment : Fragment(){
+@Subcomponent(modules = arrayOf(StatisticsModule::class))
+interface StatisticsComponent : AndroidInjector<StatisticsLoadFragment> {
 
-    companion object Factory {
-        fun newInstance() : StatisticsFragment = StatisticsFragment()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater!!.inflate(R.layout.fragment_statistics, container, false)
-    }
-
+    @Subcomponent.Builder
+    abstract class Builder : AndroidInjector.Builder<StatisticsLoadFragment>()
 }

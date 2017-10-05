@@ -18,6 +18,7 @@ import android.util.Base64
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.squareup.moshi.Json
 import com.squareup.picasso.Target
+import okhttp3.OkHttpClient
 import org.apache.commons.lang3.StringUtils
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -35,11 +36,13 @@ data class BitbucketCredentials(@Json(name = "url") val bitBucketUrl: String,
     }
 }
 
-data class BitbucketConnection(val userName: String, val serverUrl: String, val api: BitbucketApi, val token: String) {
+data class BitbucketConnection private constructor(val userName: String, val serverUrl: String, val api: BitbucketApi,
+                                                   val token: String) {
     companion object Factory {
-        fun from(credentials: BitbucketCredentials): BitbucketConnection {
+        fun from(credentials: BitbucketCredentials, client: OkHttpClient): BitbucketConnection {
             return BitbucketConnection(credentials.username, credentials.bitBucketUrl,
-                    createBitbucketApi(credentials.bitBucketUrl), createBasicToken(credentials.username, credentials.password))
+                    createBitbucketApi(credentials.bitBucketUrl, client),
+                    createBasicToken(credentials.username, credentials.password))
         }
 
         private fun createBasicToken(username: String, password: String): String {
@@ -47,9 +50,10 @@ data class BitbucketConnection(val userName: String, val serverUrl: String, val 
             return "Basic ${Base64.encodeToString(toBase64.toByteArray(Charset.forName("UTF-8")), Base64.NO_WRAP)}"
         }
 
-        private fun createBitbucketApi(url: String): BitbucketApi {
+        private fun createBitbucketApi(url: String, client: OkHttpClient): BitbucketApi {
             return Retrofit.Builder()
                     .baseUrl(url)
+                    .client(client)
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .addConverterFactory(MoshiConverterFactory.create())
                     .build()
@@ -66,7 +70,7 @@ data class Repository(@Json(name = "slug") val slug: String,
                       @Json(name = "name") val name: String,
                       @Json(name = "project") val project: Project)
 
-data class User(@Json(name = "id") val id: Int,
+data class User(@Json(name = "id") val id: Long,
                 @Json(name = "name") val name: String,
                 @Json(name = "displayName") val displayName: String,
                 @Json(name = "slug") val slug: String,
@@ -117,8 +121,34 @@ const val STATUS_OPEN = "open"
 const val STATUS_MERGED = "merged"
 const val STATUS_ALL = "all"
 
+@Retention(AnnotationRetention.SOURCE)
+@StringDef(NEWEST, OLDEST)
+annotation class Order
+
+const val NEWEST = "NEWEST"
+const val OLDEST = "OLDEST"
+
+data class PullRequestActivity(
+        @Json(name = "id") val id: Long,
+        @Json(name = "createdDate") val createdDate: Long,
+        @Json(name = "user") val user: User,
+        @ActivityType @Json(name = "action") val action: String
+)
+
+@Retention(AnnotationRetention.SOURCE)
+@StringDef(ACTIVITY_COMMENTED, ACTIVITY_APPROVED, ACTIVITY_NEEDS_WORK, ACTIVITY_OPENED, ACTIVITY_MERGED, ACTIVITY_DECLINED)
+annotation class ActivityType
+
+const val ACTIVITY_COMMENTED = "COMMENTED"
+const val ACTIVITY_NEEDS_WORK = "REVIEWED"
+const val ACTIVITY_APPROVED = "APPROVED"
+const val ACTIVITY_OPENED = "OPENED"
+const val ACTIVITY_MERGED = "MERGED"
+const val ACTIVITY_DECLINED = "DECLINED"
+
 data class GitReference(@Json(name = "displayId") val displayId: String,
-                        @Json(name = "latestCommit") val latestCommit: String)
+                        @Json(name = "latestCommit") val latestCommit: String,
+                        @Json(name = "repository") val repository: Repository)
 
 data class Reviewer(val user: User, val density: Density, val reviewsCount: Int, val isLazy: Boolean)
 data class ReviewersInformation(val reviewers: List<Reviewer>, val preferredReviewers: List<Reviewer>, val lead: User?,

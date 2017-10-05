@@ -18,6 +18,7 @@ import com.github.luks91.teambucket.TeamBucketApplication
 import dagger.Component
 import dagger.BindsInstance
 import dagger.android.AndroidInjectionModule
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Component(modules = arrayOf(AndroidInjectionModule::class, ApplicationModule::class, ActivityBuilder::class))
@@ -27,6 +28,7 @@ interface ApplicationComponent {
     @Component.Builder
     interface Builder {
         @BindsInstance fun application(application: Application): Builder
+        @BindsInstance fun okHttpClient(client: OkHttpClient): Builder
         fun build(): ApplicationComponent
     }
 

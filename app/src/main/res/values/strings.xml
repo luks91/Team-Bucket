@@ -69,6 +69,7 @@
         <item><a href="https://commons.apache.org/proper/commons-lang/">Apache Common-Lang</a>\nApache 2.0 License</item>
         <item><a href="http://square.github.io/retrofit/">Retrofit</a>\nApache 2.0 License</item>
         <item><a href="https://github.com/google/dagger">Dagger</a>\nApache 2.0 License</item>
+        <item><a href="https://github.com/PhilJay/MPAndroidChart">MPAndroidChart</a>\nApache 2.0 License</item>
     </string-array>
     <string-array name="copyright_urls">
         <item/>
@@ -86,6 +87,7 @@
         <item>https://commons.apache.org/proper/commons-lang/</item>
         <item>http://square.github.io/retrofit/</item>
         <item>https://github.com/google/dagger</item>
+        <item>https://github.com/PhilJay/MPAndroidChart</item>
     </string-array>
     <string-array name="magic_urls">
         <item><item>https://youtu.be/jI-kpVh6e1U</item></item>

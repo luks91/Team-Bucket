@@ -20,14 +20,17 @@ import android.net.ConnectivityManager
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.model.BitbucketCredentials
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.connection.CredentialsValidator
 import com.github.luks91.teambucket.main.MainActivityComponent
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
+import com.github.luks91.teambucket.persistence.TeamMembersStorage
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module(subcomponents = arrayOf(MainActivityComponent::class))
@@ -46,8 +49,15 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun providePersistenceProvider(@AppContext context: Context, eventsBus: ReactiveBus): PersistenceProvider =
-         PersistenceProvider(context, eventsBus)
+    fun providePullRequestsStorage() = PullRequestsStorage()
+
+    @Provides
+    @Singleton
+    fun provideTeamMembersStorage(@AppContext context: Context) = TeamMembersStorage(context)
+
+    @Provides
+    @Singleton
+    fun provideRepositoriesStorage(eventsBus: ReactiveBus) = RepositoriesStorage(eventsBus)
 
     @Provides
     @Singleton
@@ -58,18 +68,20 @@ class ApplicationModule {
     @Singleton
     internal fun provideConnectionProvider(@AppContext context: Context, @AppPreferences preferences: SharedPreferences,
                                            credentialsAdapter: JsonAdapter<BitbucketCredentials>,
-                                           eventsBus: ReactiveBus, credentialsValidator: CredentialsValidator): ConnectionProvider =
-         ConnectionProvider(context, preferences, credentialsAdapter, credentialsValidator, eventsBus)
+                                           eventsBus: ReactiveBus, credentialsValidator: CredentialsValidator,
+                                           httpClient: OkHttpClient): ConnectionProvider =
+         ConnectionProvider(context, preferences, credentialsAdapter, credentialsValidator, eventsBus, httpClient)
 
     @Provides
     @Singleton
-    internal fun provideCredentialsValidator(connectivityManager: ConnectivityManager, eventsBus: ReactiveBus): CredentialsValidator =
-            CredentialsValidator(connectivityManager, eventsBus)
+    internal fun provideCredentialsValidator(eventsBus: ReactiveBus, httpClient: OkHttpClient): CredentialsValidator =
+            CredentialsValidator(eventsBus, httpClient)
 
     @Provides
     @Singleton
-    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, persistenceProvider: PersistenceProvider):
-            TeamMembersProvider = TeamMembersProvider(connectionProvider, persistenceProvider)
+    fun provideTeamMembersProvider(connectionProvider: ConnectionProvider, teamMembersStorage: TeamMembersStorage,
+                                   repositoriesStorage: RepositoriesStorage):
+            TeamMembersProvider = TeamMembersProvider(connectionProvider, teamMembersStorage, repositoriesStorage)
 
     @Provides
     @Singleton

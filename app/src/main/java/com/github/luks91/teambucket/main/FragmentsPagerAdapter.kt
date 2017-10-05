@@ -20,7 +20,7 @@ import android.support.v4.app.FragmentStatePagerAdapter
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.main.home.HomeFragment
 import com.github.luks91.teambucket.main.reviewers.ReviewersFragment
-import com.github.luks91.teambucket.main.statistics.StatisticsFragment
+import com.github.luks91.teambucket.main.statistics.load.StatisticsLoadFragment
 
 class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Resources)
     : FragmentStatePagerAdapter(fragmentManager) {
@@ -55,16 +55,17 @@ class FragmentsPagerAdapter(fragmentManager: FragmentManager, val resources: Res
             override fun getTitle(res: Resources): CharSequence {
                 return res.getString(R.string.reviewers_tab_title)
             }
-        },
-        STATISTICS {
-            override fun getItem(): Fragment {
-                return StatisticsFragment.newInstance()
-            }
-
-            override fun getTitle(res: Resources): CharSequence {
-                return res.getString(R.string.statistics_tab_title)
-            }
         };
+//        ,
+//        STATISTICS {
+//            override fun getItem(): Fragment {
+//                return StatisticsLoadFragment.newInstance()
+//            }
+//
+//            override fun getTitle(res: Resources): CharSequence {
+//                return res.getString(R.string.statistics_tab_title)
+//            }
+//        };
 
         abstract fun getItem(): Fragment
         abstract fun getTitle(res: Resources): CharSequence

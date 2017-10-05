@@ -14,10 +14,11 @@
 package com.github.luks91.teambucket
 
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.persistence.PersistenceProvider
 import com.github.luks91.teambucket.main.reviewers.ReviewersPresenter
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.connection.ConnectionProvider
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
+import com.github.luks91.teambucket.persistence.TeamMembersStorage
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
@@ -26,25 +27,26 @@ import io.reactivex.schedulers.Timed
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider,
-                                              val persistenceProvider: PersistenceProvider) {
+class TeamMembersProvider @Inject constructor(val connectionProvider: ConnectionProvider, val membersStorage: TeamMembersStorage,
+                                              val repositoriesStorage: RepositoriesStorage) {
 
     companion object {
         const val PAGES_PER_REPOSITORY = 1L
         const val MINIMUM_USER_OCCURRENCES = 2
         const val PAGE_LIMIT = 20
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
+        const val MEMBERSHIP_PRS_COUNT = 25
     }
 
-    fun teamMembers(refreshTicks: Observable<Any>): Observable<Map<User, Density>> {
-        val remoteMembership = calculateTeamMembership().publish()
-        return refreshTicks.switchMap { _ ->
-            persistenceProvider.teamMembers()
-                    .switchMap { members -> if (members.haveExpired()) remoteMembership.refCount() else Observable.just(members) }
-        }.map { timedMembers -> timedMembers.value() }
+    private val teamMembers = calculateTeamMembership().subscribeOn(Schedulers.io())
+            .doOnNext{ membersStorage.persistTeamMembers(it) }.replay(1).refCount()
 
-            //use mergeWith to bind to subscribe/unsubscribe lifecycle of the upstream observable
-            .mergeWith(persistenceProvider.teamMembersPersisting(remoteMembership).concatMap { Observable.empty<Map<User, Density>>() })
+    fun teamMembers(refreshTicks: Observable<Any>): Observable<Map<User, Density>> {
+        return refreshTicks.switchMap { _ ->
+            membersStorage.teamMembers()
+                    .first(Timed(emptyMap(), 0, TimeUnit.MILLISECONDS)).toObservable()
+                    .switchMap { members -> if (members.haveExpired()) teamMembers else Observable.just(members) }
+        }.map { timedMembers -> timedMembers.value() }
     }
 
     private fun Timed<Map<User, Density>>.haveExpired(): Boolean {
@@ -54,7 +56,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
     private fun calculateTeamMembership(): Observable<Timed<Map<User, Density>>> {
         return Observable.combineLatest(
                 connectionProvider.connections(),
-                persistenceProvider.selectedRepositories(),
+                repositoriesStorage.selectedRepositories(),
                 BiFunction<BitbucketConnection, List<Repository>, Observable<Timed<Map<User, Density>>>> {
                     (userName, _, api, token), repositories ->
                     return@BiFunction  Observable.fromIterable(repositories)
@@ -79,7 +81,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         return ObservableTransformer { upstream ->
             upstream.map { pullRequests ->
                 val densitiesMap = mutableMapOf<User, MutableDensity>()
-                for (pullRequest in pullRequests) {
+                for (pullRequest in pullRequests.sortedByDescending { it.createdDate }.take(MEMBERSHIP_PRS_COUNT)) {
                     val author = pullRequest.author.user
                     val reviewers = pullRequest.reviewers.map { it.user }
                     //if current user is the author, add all the other reviewers
@@ -119,7 +121,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
     private class MutableDensity(var inbound: Int = 0, var outbound: Int = 0)
 }
 
-fun Map<User, Density>.getLeadUser(): User? {
+fun Map<User, Density>.getLeadUser(pullRequests: List<PullRequest>): User? {
     var leadParam = 0.0
     var leadUser: User? = null
     for ((user, density) in this) {
@@ -130,5 +132,5 @@ fun Map<User, Density>.getLeadUser(): User? {
         }
     }
 
-    return if (leadParam > 0.75 * TeamMembersProvider.PAGE_LIMIT * TeamMembersProvider.PAGES_PER_REPOSITORY) leadUser else null
+    return if (leadParam > 0.75 * Math.min(TeamMembersProvider.MEMBERSHIP_PRS_COUNT, pullRequests.size)) leadUser else null
 }

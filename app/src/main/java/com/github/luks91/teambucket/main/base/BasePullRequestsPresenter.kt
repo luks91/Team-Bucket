@@ -21,10 +21,11 @@ import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.model.*
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
 import com.github.luks91.teambucket.connection.BitbucketApi
 import com.github.luks91.teambucket.util.PicassoCircleTransformation
 import com.github.luks91.teambucket.getLeadUser
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import com.hannesdorfmann.mosby3.mvp.MvpPresenter
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
@@ -41,16 +42,21 @@ import javax.inject.Inject
 open class BasePullRequestsPresenter<T : BasePullRequestsView>
         @Inject constructor(@AppContext private val context: Context,
                             private val connectionProvider: ConnectionProvider,
-                            private val persistenceProvider: PersistenceProvider,
+                            private val repositoriesStorage: RepositoriesStorage,
+                            private val pullRequestsStorage: PullRequestsStorage,
                             private val teamMembersProvider: TeamMembersProvider) : MvpPresenter<T> {
 
     private var disposable = Disposables.empty()
+
+    companion object {
+        @JvmStatic val NULL_PULL_REQUESTS = listOf<PullRequest>()
+    }
 
     override fun attachView(view: T) {
         pullRequests(view).apply {
             disposable = CompositeDisposable(
                     subscribeProvidingReviewers(this@apply, view),
-                    persistenceProvider.pullRequestsPersisting(map { (pullRequests) -> pullRequests }),
+                    pullRequestsStorage.pullRequestsPersisting(map { (pullRequests) -> pullRequests }),
                     connect(),
                     subscribeImageLoading(view)
             )
@@ -63,7 +69,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                 connectionProvider.connections(),
                 BiFunction<Any, BitbucketConnection, BitbucketConnection> { _, conn -> conn }
         ).switchMap { (_, serverUrl, api, token) ->
-            persistenceProvider.selectedRepositories()
+            repositoriesStorage.selectedRepositories()
                     .switchMap { list ->
                         Observable.fromIterable(list)
                                 .flatMap { (slug, _, project) ->
@@ -72,8 +78,10 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                                             .subscribeOn(Schedulers.io())
                                             .onErrorResumeNext(connectionProvider.handleNetworkError(
                                                     BasePullRequestsPresenter::class.java.simpleName))
-                                }.reduce { t1, t2 -> t1 + t2 }.map { list -> list to serverUrl }.toObservable()
-                                .switchIfEmpty(Observable.just(listOf<PullRequest>() to serverUrl))
+                                }.reduce { t1, t2 -> t1 + t2 }.map { it to serverUrl }.toObservable()
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnComplete { view.onLoadingCompleted() }
+                                .switchIfEmpty(Observable.just(NULL_PULL_REQUESTS to serverUrl))
                     }
         }
                 .doOnSubscribe { view.onSelfLoadingStarted() }
@@ -84,15 +92,17 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
 
     private fun subscribeProvidingReviewers(pullRequests: ConnectableObservable<Pair<List<PullRequest>, String>>,
                                             view: T): Disposable {
-        return Observable.zip(
+        return Observable.combineLatest(
                 pullRequests,
                 teamMembersProvider.teamMembers(view.intentPullToRefresh().startWith { Object() }),
                 BiFunction<Pair<List<PullRequest>, String>, Map<User, Density>, ReviewersInformation> {
                     (pullRequests, serverUrl), team ->
-                    reviewersInformationFrom(team, pullRequests, serverUrl)
+                    if (pullRequests != NULL_PULL_REQUESTS)
+                        reviewersInformationFrom(team, pullRequests, serverUrl)
+                    else
+                        reviewersInformationFrom(emptyMap(), pullRequests, serverUrl)
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext { view.onLoadingCompleted() }
                 .subscribe { prCount -> view.onReviewersReceived(prCount) }
     }
 
@@ -119,7 +129,7 @@ open class BasePullRequestsPresenter<T : BasePullRequestsView>
                     isLazy = lazyReviewers.contains(key)))
         }
 
-        val leadUser = teamMembers.getLeadUser()
+        val leadUser = teamMembers.getLeadUser(pullRequests)
         return ReviewersInformation(
                 returnList.sortedWith(compareBy({ it.user != leadUser }, { it.reviewsCount }, { it.user.displayName })),
                 returnList.sortedWith(compareBy({ it.user != leadUser },

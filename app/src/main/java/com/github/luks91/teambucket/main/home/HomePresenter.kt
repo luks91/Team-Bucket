@@ -18,23 +18,26 @@ import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.di.AppContext
 import com.github.luks91.teambucket.main.base.BasePullRequestsPresenter
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class HomePresenter @Inject constructor(@AppContext context: Context, private val connectionProvider: ConnectionProvider,
-                                        private val persistenceProvider: PersistenceProvider,
+                                        repositoriesStorage: RepositoriesStorage,
+                                        private val pullRequestsStorage: PullRequestsStorage,
                                         teamMembersProvider: TeamMembersProvider):
-        BasePullRequestsPresenter<HomeView>(context, connectionProvider, persistenceProvider, teamMembersProvider) {
+        BasePullRequestsPresenter<HomeView>(context, connectionProvider, repositoriesStorage, pullRequestsStorage,
+                teamMembersProvider) {
 
     private var disposable = Disposables.empty()
 
     override fun attachView(view: HomeView) {
         super.attachView(view)
         disposable = connectionProvider.connections()
-                .switchMap { persistenceProvider.pullRequestsUnderReviewBy(it.userName) }
+                .switchMap { pullRequestsStorage.pullRequestsUnderReviewBy(it.userName) }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { view.onUserPullRequestsProvided(it) }

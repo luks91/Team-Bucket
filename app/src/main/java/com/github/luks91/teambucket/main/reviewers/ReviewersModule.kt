@@ -17,7 +17,8 @@ import android.content.Context
 import com.github.luks91.teambucket.TeamMembersProvider
 import com.github.luks91.teambucket.connection.ConnectionProvider
 import com.github.luks91.teambucket.di.AppContext
-import com.github.luks91.teambucket.persistence.PersistenceProvider
+import com.github.luks91.teambucket.persistence.PullRequestsStorage
+import com.github.luks91.teambucket.persistence.RepositoriesStorage
 import dagger.Module
 import dagger.Provides
 
@@ -25,12 +26,11 @@ import dagger.Provides
 class ReviewersModule {
 
     @Provides
-    internal fun provideReviewersFragmentView(reviewersFragment: ReviewersFragment): ReviewersView {
-        return reviewersFragment
-    }
+    internal fun provideReviewersFragmentView(reviewersFragment: ReviewersFragment): ReviewersView = reviewersFragment
 
     @Provides
     internal fun providesReviewersPresenter(@AppContext context: Context, connectionProvider: ConnectionProvider,
-                                            persistenceProvider: PersistenceProvider, teamMembersProvider: TeamMembersProvider):
-            ReviewersPresenter = ReviewersPresenter(context, connectionProvider, persistenceProvider, teamMembersProvider)
+                                            repositoriesStorage: RepositoriesStorage, pullRequestsStorage: PullRequestsStorage,
+                                            teamMembersProvider: TeamMembersProvider) =
+            ReviewersPresenter(context, connectionProvider, repositoriesStorage, pullRequestsStorage, teamMembersProvider)
 }
