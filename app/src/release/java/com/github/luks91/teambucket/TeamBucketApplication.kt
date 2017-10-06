@@ -18,7 +18,10 @@ import dagger.android.HasActivityInjector
 import android.app.Activity
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
+import io.reactivex.plugins.RxJavaPlugins
+import io.realm.Realm
 import okhttp3.OkHttpClient
+import java.io.InterruptedIOException
 import javax.inject.Inject
 
 class TeamBucketApplication : android.app.Application(), HasActivityInjector {
@@ -31,6 +34,16 @@ class TeamBucketApplication : android.app.Application(), HasActivityInjector {
                 .application(this)
                 .okHttpClient(OkHttpClient.Builder().build())
                 .build().inject(this)
+
+        Realm.init(this)
+        RxJavaPlugins.setErrorHandler {
+            if (it.cause is InterruptedIOException) {
+                //ignore interruptions (OkHttp issue)
+            } else {
+                val currentThread = Thread.currentThread()
+                currentThread.uncaughtExceptionHandler.uncaughtException(currentThread, it)
+            }
+        }
     }
 
     override fun activityInjector(): AndroidInjector<Activity> {
