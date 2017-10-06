@@ -29,7 +29,7 @@ class TeamBucketApplication : android.app.Application(), HasActivityInjector {
         super.onCreate()
         DaggerApplicationComponent.builder()
                 .application(this)
-                .client(OkHttpClient.Builder().build())
+                .okHttpClient(OkHttpClient.Builder().build())
                 .build().inject(this)
     }
 
