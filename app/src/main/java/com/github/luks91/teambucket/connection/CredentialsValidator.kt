@@ -13,6 +13,7 @@
 
 package com.github.luks91.teambucket.connection
 
+import android.webkit.URLUtil
 import com.github.luks91.teambucket.R
 import com.github.luks91.teambucket.ReactiveBus
 import com.github.luks91.teambucket.model.BitbucketConnection
@@ -33,15 +34,19 @@ internal class CredentialsValidator(private val eventsBus: ReactiveBus, private 
                         onInvalid()
                         Observable.never<BitbucketCredentials>()
                     }.switchMap { secrets ->
-                        val (userName, _, api, token) = BitbucketConnection.from(secrets, okHttpClient)
-                        api.getUser(token, userName)
-                                .map { _ -> secrets }
-                                .onErrorResumeNext { error: Throwable ->
-                                    if (error is HttpException && error.code() == HttpURLConnection.HTTP_UNAUTHORIZED)
-                                        Observable.never<BitbucketCredentials>().doOnSubscribe { onInvalid() }
-                                    else
-                                        Observable.just(secrets)
-                                }
+                        if (!URLUtil.isValidUrl(secrets.bitBucketUrl)) {
+                            Observable.never<BitbucketCredentials>().doOnSubscribe { onInvalid() }
+                        } else {
+                            val (userName, _, api, token) = BitbucketConnection.from(secrets, okHttpClient)
+                            api.getUser(token, userName)
+                                    .map { _ -> secrets }
+                                    .onErrorResumeNext { error: Throwable ->
+                                        if (error is HttpException && error.code() == HttpURLConnection.HTTP_UNAUTHORIZED)
+                                            Observable.never<BitbucketCredentials>().doOnSubscribe { onInvalid() }
+                                        else
+                                            Observable.just(secrets)
+                                    }
+                        }
                     }
 
     fun <TData> handleNetworkError(sender: String): ((t: Throwable) -> Observable<TData>) {
