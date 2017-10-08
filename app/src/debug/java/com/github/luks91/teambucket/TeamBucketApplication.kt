@@ -26,6 +26,10 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.InterruptedIOException
 import javax.inject.Inject
+import com.crashlytics.android.Crashlytics
+import io.fabric.sdk.android.Fabric
+
+
 
 class TeamBucketApplication : android.app.Application(), HasActivityInjector {
 
@@ -41,6 +45,7 @@ class TeamBucketApplication : android.app.Application(), HasActivityInjector {
                 .okHttpClient(OkHttpClient.Builder().addInterceptor(logging).build())
                 .build().inject(this)
 
+        Fabric.with(this, Crashlytics())
         Realm.init(this)
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)

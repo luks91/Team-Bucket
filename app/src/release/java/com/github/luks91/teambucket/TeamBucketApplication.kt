@@ -16,8 +16,10 @@ package com.github.luks91.teambucket
 import com.github.luks91.teambucket.di.DaggerApplicationComponent
 import dagger.android.HasActivityInjector
 import android.app.Activity
+import com.crashlytics.android.Crashlytics
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
+import io.fabric.sdk.android.Fabric
 import io.reactivex.plugins.RxJavaPlugins
 import io.realm.Realm
 import okhttp3.OkHttpClient
@@ -35,6 +37,7 @@ class TeamBucketApplication : android.app.Application(), HasActivityInjector {
                 .okHttpClient(OkHttpClient.Builder().build())
                 .build().inject(this)
 
+        Fabric.with(this, Crashlytics())
         Realm.init(this)
         RxJavaPlugins.setErrorHandler {
             if (it.cause is InterruptedIOException) {
