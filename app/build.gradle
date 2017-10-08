@@ -12,8 +12,8 @@ android {
         applicationId "com.github.luks91.teambucket"
         minSdkVersion 23
         targetSdkVersion 25
-        versionCode 18
-        versionName "01.03.08"
+        versionCode 19
+        versionName "01.03.09"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
