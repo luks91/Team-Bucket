@@ -14,7 +14,7 @@
 -->
 
 <resources>
-    <string name="app_name">Team Bucket</string>
+    <string name="app_name">TeamBucket</string>
     <string name="bitbucket_auth_header">Authenticate with BitBucket</string>
     <string name="hint_url">BitBucket URL</string>
     <string name="hint_username">Username</string>
@@ -52,7 +52,7 @@
 
     <string name="about">About</string>
     <string-array name="copyright">
-        <item>Team Bucket\nCopyright © 2017-present, Team Bucket Contributors.\n\nLicensed under the Apache License,\nVersion
+        <item>TeamBucket\nCopyright © 2017-present, Team Bucket Contributors.\n\nLicensed under the Apache License,\nVersion
             2.0.</item>
         <item><a href="https://github.com/luks91/Team-Bucket">Source code available on GitHub.</a></item>
         <item><b>Libraries used in the project:</b></item>

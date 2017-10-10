@@ -31,9 +31,9 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                                               val repositoriesStorage: RepositoriesStorage) {
 
     companion object {
-        const val PAGES_PER_REPOSITORY = 1L
+        const val PAGES_PER_REPOSITORY = 3L
         const val MINIMUM_USER_OCCURRENCES = 2
-        const val PAGE_LIMIT = 20
+        const val PAGE_LIMIT = 25
         const val MEMBERSHIP_TIMEOUT_HOURS = 20L
         const val MEMBERSHIP_PRS_COUNT = 25
     }
@@ -81,12 +81,16 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
         return ObservableTransformer { upstream ->
             upstream.map { pullRequests ->
                 val densitiesMap = mutableMapOf<User, MutableDensity>()
-                for (pullRequest in pullRequests.sortedByDescending { it.createdDate }.take(MEMBERSHIP_PRS_COUNT)) {
+                var processedUserReviews = 0
+                val pullRequestsIterator = pullRequests.sortedByDescending { it.createdDate }.iterator()
+                while (pullRequestsIterator.hasNext() && processedUserReviews < MEMBERSHIP_PRS_COUNT) {
+                    val pullRequest = pullRequestsIterator.next()
                     val author = pullRequest.author.user
                     val reviewers = pullRequest.reviewers.map { it.user }
                     //if current user is the author, add all the other reviewers
                     if (author.name.equals(userName, ignoreCase = true)) {
                         reviewers.forEach { densitiesMap.getOrPut(it, { MutableDensity() }).inbound++ }
+                        processedUserReviews++
                     } else { //if current user is a reviewer, add all the other reviewers and the author
                         var foundUser = false
                         var index = 0
@@ -96,6 +100,7 @@ class TeamMembersProvider @Inject constructor(val connectionProvider: Connection
                             user = reviewersIterator.next()
                             if (user.name.equals(userName, ignoreCase = true)) {
                                 foundUser = true
+                                processedUserReviews++
                                 if (index > 0) {
                                     reviewers.subList(0, index)
                                             .forEach { densitiesMap.getOrPut(it, { MutableDensity() }).inbound++ }
